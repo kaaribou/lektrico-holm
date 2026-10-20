@@ -1,0 +1,325 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Ajouter une borne Lektrico",
+        "description": "Ajout manuel par adresse IP : HOLM Lektrico n'utilise pas la détection automatique et interroge la borne avec parcimonie (2 requêtes toutes les 30 s au plus).",
+        "data": {
+          "host": "Adresse IP de la borne",
+          "name": "Nom de l'appareil",
+          "prefix": "Préfixe des entités"
+        },
+        "data_description": {
+          "prefix": "Les entités s'appelleront par exemple sensor.<préfixe>_etat. Gardez « garage_borne_de_recharge » pour reprendre les noms de l'intégration officielle."
+        }
+      },
+      "reconfigure": {
+        "title": "Changer l'adresse de la borne",
+        "data": {
+          "host": "Adresse IP de la borne"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Impossible de joindre la borne à cette adresse."
+    },
+    "abort": {
+      "already_configured": "Cette borne est déjà configurée.",
+      "reconfigure_successful": "Adresse mise à jour.",
+      "wrong_device": "Cette adresse correspond à une autre borne."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options HOLM Lektrico",
+        "data": {
+          "scan_interval": "Intervalle d'interrogation"
+        },
+        "data_description": {
+          "scan_interval": "Temps entre deux interrogations (15 à 300 s). En cas de problème, l'intervalle s'allonge tout seul jusqu'à 5 min."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "state": {
+        "name": "État",
+        "state": {
+          "available": "Disponible",
+          "charging": "En charge",
+          "connected": "Véhicule branché",
+          "error": "Erreur",
+          "locked": "Verrouillée",
+          "need_auth": "Authentification requise",
+          "paused": "En pause",
+          "paused_by_scheduler": "En pause (programme)",
+          "updating_firmware": "Mise à jour"
+        }
+      },
+      "power": {
+        "name": "Puissance"
+      },
+      "energy": {
+        "name": "Énergie"
+      },
+      "lifetime_energy": {
+        "name": "Énergie totale"
+      },
+      "charging_time": {
+        "name": "Temps de charge"
+      },
+      "temperature": {
+        "name": "Température"
+      },
+      "current": {
+        "name": "Courant"
+      },
+      "voltage": {
+        "name": "Tension"
+      },
+      "installation_current": {
+        "name": "Courant de l'installation"
+      },
+      "limit_reason": {
+        "name": "Raison de la limite",
+        "state": {
+          "no_limit": "Aucune limite",
+          "installation_current": "Courant de l'installation",
+          "user_limit": "Limite utilisateur",
+          "dynamic_limit": "Limite dynamique",
+          "schedule": "Programme de charge",
+          "em_offline": "Compteur d'énergie hors ligne",
+          "em": "Compteur d'énergie",
+          "ocpp": "OCPP",
+          "overtemperature": "Température"
+        }
+      },
+      "iec_state": {
+        "name": "État IEC 61851"
+      },
+      "pwm_current": {
+        "name": "Courant PWM"
+      },
+      "session_id": {
+        "name": "Numéro de session"
+      },
+      "heap_free": {
+        "name": "Mémoire libre"
+      },
+      "em_current": {
+        "name": "Courant gestion d'énergie"
+      },
+      "current_l1": {
+        "name": "Courant L1"
+      },
+      "current_l2": {
+        "name": "Courant L2"
+      },
+      "current_l3": {
+        "name": "Courant L3"
+      },
+      "voltage_l1": {
+        "name": "Tension L1"
+      },
+      "voltage_l2": {
+        "name": "Tension L2"
+      },
+      "voltage_l3": {
+        "name": "Tension L3"
+      },
+      "charging_current": {
+        "name": "Courant de charge autorisé"
+      },
+      "system_max_current": {
+        "name": "Courant maximal système"
+      },
+      "schedule_current": {
+        "name": "Courant du programme"
+      },
+      "temperature_current": {
+        "name": "Courant limité par la température"
+      },
+      "user_power_current": {
+        "name": "Courant puissance utilisateur"
+      },
+      "ocpp_current": {
+        "name": "Courant OCPP"
+      },
+      "wifi_rssi": {
+        "name": "Signal Wi-Fi"
+      },
+      "wifi_ip": {
+        "name": "Adresse IP"
+      },
+      "total_sessions": {
+        "name": "Nombre de sessions"
+      },
+      "total_time": {
+        "name": "Temps de charge total"
+      },
+      "last_session_energy": {
+        "name": "Énergie dernière session"
+      },
+      "requests": {
+        "name": "Requêtes envoyées"
+      },
+      "failures": {
+        "name": "Échecs de communication"
+      },
+      "uptime": {
+        "name": "Temps de fonctionnement"
+      },
+      "energy_index": {
+        "name": "Index d'énergie"
+      },
+      "main_task_lwm": {
+        "name": "Pile de la tâche principale"
+      },
+      "wifi_reconnects": {
+        "name": "Reconnexions Wi-Fi"
+      }
+    },
+    "binary_sensor": {
+      "state_e_activated": {
+        "name": "Erreur EV"
+      },
+      "overtemp": {
+        "name": "Limitation thermique"
+      },
+      "critical_temp": {
+        "name": "Surchauffe"
+      },
+      "overcurrent": {
+        "name": "Surintensité"
+      },
+      "meter_fault": {
+        "name": "Erreur de comptage"
+      },
+      "undervoltage": {
+        "name": "Sous-tension"
+      },
+      "overvoltage": {
+        "name": "Surtension"
+      },
+      "rcd_error": {
+        "name": "Erreur du différentiel (RCD)"
+      },
+      "cp_diode_failure": {
+        "name": "Court-circuit de la diode EV"
+      },
+      "contactor_failure": {
+        "name": "Contacts du relais soudés"
+      },
+      "voltage_error": {
+        "name": "Erreur de tension"
+      },
+      "rcd_test_error": {
+        "name": "Échec du test différentiel"
+      },
+      "state_f_activated": {
+        "name": "Erreur état F"
+      },
+      "state_machine_error": {
+        "name": "Erreur de l'automate"
+      },
+      "active_errors": {
+        "name": "Erreurs actives"
+      },
+      "paused": {
+        "name": "En pause"
+      },
+      "vehicle_connected": {
+        "name": "Véhicule branché"
+      },
+      "charging": {
+        "name": "En charge"
+      },
+      "wifi_connected": {
+        "name": "Wi-Fi connecté"
+      },
+      "schedule_override": {
+        "name": "Dérogation active"
+      }
+    },
+    "switch": {
+      "authentication": {
+        "name": "Authentification"
+      },
+      "lock": {
+        "name": "Verrou"
+      },
+      "charging_schedule": {
+        "name": "Programme de charge"
+      },
+      "auto_update": {
+        "name": "Mise à jour automatique"
+      },
+      "energy_management": {
+        "name": "Gestion d'énergie"
+      },
+      "led_template": {
+        "name": "Couleurs LED personnalisées"
+      },
+      "precise_pwm": {
+        "name": "PWM précis"
+      },
+      "buzzer": {
+        "name": "Buzzer"
+      },
+      "reset_on_wifi_loss": {
+        "name": "Redémarrage si Wi-Fi perdu"
+      },
+      "mqtt": {
+        "name": "MQTT"
+      }
+    },
+    "number": {
+      "dynamic_limit": {
+        "name": "Limite dynamique"
+      },
+      "user_limit": {
+        "name": "Limite utilisateur"
+      },
+      "user_power": {
+        "name": "Puissance maximale"
+      },
+      "led_max_brightness": {
+        "name": "Luminosité de la LED"
+      },
+      "led_dimming_delay": {
+        "name": "Délai d'atténuation de la LED"
+      },
+      "install_current": {
+        "name": "Courant d'installation (réglage)"
+      },
+      "car_minimum_current": {
+        "name": "Courant minimal du véhicule"
+      }
+    },
+    "button": {
+      "charge_start": {
+        "name": "Démarrer la recharge"
+      },
+      "charge_stop": {
+        "name": "Arrêter la recharge"
+      },
+      "charge_pause": {
+        "name": "Mettre en pause"
+      },
+      "charge_resume": {
+        "name": "Reprendre la recharge"
+      },
+      "charging_schedule_override": {
+        "name": "Dérogation du programme de charge"
+      },
+      "session_energy_reset": {
+        "name": "Remise à zéro de l'énergie de session"
+      },
+      "reboot": {
+        "name": "Redémarrer"
+      }
+    }
+  }
+}

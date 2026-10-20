@@ -1,0 +1,325 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add a Lektrico charger",
+        "description": "Manual setup by IP address: HOLM Lektrico does not use automatic discovery and polls the charger sparingly (at most 2 requests every 30 s).",
+        "data": {
+          "host": "Charger IP address",
+          "name": "Device name",
+          "prefix": "Entity prefix"
+        },
+        "data_description": {
+          "prefix": "Entities will be named e.g. sensor.<prefix>_etat."
+        }
+      },
+      "reconfigure": {
+        "title": "Change the charger address",
+        "data": {
+          "host": "Charger IP address"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot reach the charger at this address."
+    },
+    "abort": {
+      "already_configured": "This charger is already configured.",
+      "reconfigure_successful": "Address updated.",
+      "wrong_device": "This address belongs to another charger."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "HOLM Lektrico options",
+        "data": {
+          "scan_interval": "Polling interval"
+        },
+        "data_description": {
+          "scan_interval": "Time between two polls (15–300 s). On errors the interval grows automatically up to 5 min."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "state": {
+        "name": "State",
+        "state": {
+          "available": "Available",
+          "charging": "Charging",
+          "connected": "Connected",
+          "error": "Error",
+          "locked": "Locked",
+          "need_auth": "Waiting for authentication",
+          "paused": "Paused",
+          "paused_by_scheduler": "Paused by schedule",
+          "updating_firmware": "Updating firmware"
+        }
+      },
+      "power": {
+        "name": "Power"
+      },
+      "energy": {
+        "name": "Energy"
+      },
+      "lifetime_energy": {
+        "name": "Lifetime energy"
+      },
+      "charging_time": {
+        "name": "Charging time"
+      },
+      "temperature": {
+        "name": "Temperature"
+      },
+      "current": {
+        "name": "Current"
+      },
+      "voltage": {
+        "name": "Voltage"
+      },
+      "installation_current": {
+        "name": "Installation current"
+      },
+      "limit_reason": {
+        "name": "Limit reason",
+        "state": {
+          "no_limit": "No limit",
+          "installation_current": "Installation current",
+          "user_limit": "User limit",
+          "dynamic_limit": "Dynamic limit",
+          "schedule": "Schedule",
+          "em_offline": "Energy meter offline",
+          "em": "Energy meter",
+          "ocpp": "OCPP",
+          "overtemperature": "Temperature"
+        }
+      },
+      "iec_state": {
+        "name": "IEC 61851 state"
+      },
+      "pwm_current": {
+        "name": "PWM current"
+      },
+      "session_id": {
+        "name": "Session number"
+      },
+      "heap_free": {
+        "name": "Free memory"
+      },
+      "em_current": {
+        "name": "Energy management current"
+      },
+      "current_l1": {
+        "name": "Current L1"
+      },
+      "current_l2": {
+        "name": "Current L2"
+      },
+      "current_l3": {
+        "name": "Current L3"
+      },
+      "voltage_l1": {
+        "name": "Voltage L1"
+      },
+      "voltage_l2": {
+        "name": "Voltage L2"
+      },
+      "voltage_l3": {
+        "name": "Voltage L3"
+      },
+      "charging_current": {
+        "name": "Allowed charging current"
+      },
+      "system_max_current": {
+        "name": "System maximum current"
+      },
+      "schedule_current": {
+        "name": "Schedule current"
+      },
+      "temperature_current": {
+        "name": "Temperature-limited current"
+      },
+      "user_power_current": {
+        "name": "User power current"
+      },
+      "ocpp_current": {
+        "name": "OCPP current"
+      },
+      "wifi_rssi": {
+        "name": "Wi-Fi signal"
+      },
+      "wifi_ip": {
+        "name": "IP address"
+      },
+      "total_sessions": {
+        "name": "Total sessions"
+      },
+      "total_time": {
+        "name": "Total charging time"
+      },
+      "last_session_energy": {
+        "name": "Last session energy"
+      },
+      "requests": {
+        "name": "Requests sent"
+      },
+      "failures": {
+        "name": "Communication failures"
+      },
+      "uptime": {
+        "name": "Uptime"
+      },
+      "energy_index": {
+        "name": "Energy index"
+      },
+      "main_task_lwm": {
+        "name": "Main task stack"
+      },
+      "wifi_reconnects": {
+        "name": "Wi-Fi reconnections"
+      }
+    },
+    "binary_sensor": {
+      "state_e_activated": {
+        "name": "EV error"
+      },
+      "overtemp": {
+        "name": "Thermal limiting"
+      },
+      "critical_temp": {
+        "name": "Overheating"
+      },
+      "overcurrent": {
+        "name": "Overcurrent"
+      },
+      "meter_fault": {
+        "name": "Metering error"
+      },
+      "undervoltage": {
+        "name": "Undervoltage"
+      },
+      "overvoltage": {
+        "name": "Overvoltage"
+      },
+      "rcd_error": {
+        "name": "RCD error"
+      },
+      "cp_diode_failure": {
+        "name": "EV diode short circuit"
+      },
+      "contactor_failure": {
+        "name": "Welded relay contacts"
+      },
+      "voltage_error": {
+        "name": "Voltage error"
+      },
+      "rcd_test_error": {
+        "name": "RCD test failure"
+      },
+      "state_f_activated": {
+        "name": "State F error"
+      },
+      "state_machine_error": {
+        "name": "State machine error"
+      },
+      "active_errors": {
+        "name": "Active errors"
+      },
+      "paused": {
+        "name": "Paused"
+      },
+      "vehicle_connected": {
+        "name": "Vehicle connected"
+      },
+      "charging": {
+        "name": "Charging"
+      },
+      "wifi_connected": {
+        "name": "Wi-Fi connected"
+      },
+      "schedule_override": {
+        "name": "Schedule override active"
+      }
+    },
+    "switch": {
+      "authentication": {
+        "name": "Authentication"
+      },
+      "lock": {
+        "name": "Lock"
+      },
+      "charging_schedule": {
+        "name": "Charging schedule"
+      },
+      "auto_update": {
+        "name": "Automatic update"
+      },
+      "energy_management": {
+        "name": "Energy management"
+      },
+      "led_template": {
+        "name": "Custom LED colours"
+      },
+      "precise_pwm": {
+        "name": "Precise PWM"
+      },
+      "buzzer": {
+        "name": "Buzzer"
+      },
+      "reset_on_wifi_loss": {
+        "name": "Restart on Wi-Fi loss"
+      },
+      "mqtt": {
+        "name": "MQTT"
+      }
+    },
+    "number": {
+      "dynamic_limit": {
+        "name": "Dynamic limit"
+      },
+      "user_limit": {
+        "name": "User limit"
+      },
+      "user_power": {
+        "name": "Maximum power"
+      },
+      "led_max_brightness": {
+        "name": "LED brightness"
+      },
+      "led_dimming_delay": {
+        "name": "LED dimming delay"
+      },
+      "install_current": {
+        "name": "Installation current (setting)"
+      },
+      "car_minimum_current": {
+        "name": "Vehicle minimum current"
+      }
+    },
+    "button": {
+      "charge_start": {
+        "name": "Start charging"
+      },
+      "charge_stop": {
+        "name": "Stop charging"
+      },
+      "charge_pause": {
+        "name": "Pause"
+      },
+      "charge_resume": {
+        "name": "Resume charging"
+      },
+      "charging_schedule_override": {
+        "name": "Charging schedule override"
+      },
+      "session_energy_reset": {
+        "name": "Reset session energy"
+      },
+      "reboot": {
+        "name": "Restart"
+      }
+    }
+  }
+}

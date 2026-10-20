@@ -1,0 +1,124 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# HOLM Lektrico — délestage : les 2 automatisations à créer
+#
+# Paramètres → Automatisations → Créer → ⋮ → Modifier en YAML : collez la
+# première automatisation, enregistrez ; recommencez pour la seconde.
+#
+# À adapter :
+#   - sensor.puissance_compteur  → la puissance consommée au compteur, en W
+#                                   (Linky/TIC, Ecojoko, Shelly EM…) ;
+#   - P_MAX (11500)              → votre abonnement moins une marge
+#                                   (12 kVA → 11 500 W, 9 kVA → 8 500 W, 6 kVA → 5 500 W) ;
+#   - garage_borne_de_recharge   → le préfixe choisi pour vos entités ;
+#   - 32                         → le courant maximal de votre borne/installation.
+#
+# Fonctionnement : uniquement pendant une session de charge (voiture branchée).
+# Baisse immédiate si la maison consomme plus, hausse au plus toutes les 60 s,
+# pause sous 6 A, reprise à partir de 7 A, plafond de 16 A si le compteur ne
+# répond plus depuis 5 min, retour à 32 A quand la voiture est débranchée.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# 1/2 — le délestage (c'est elle que le bouton « Délestage » de la carte allume/éteint)
+- id: borne_delestage
+  alias: Borne – délestage
+  description: >-
+    Pendant une session de charge uniquement : module la limite dynamique pour
+    ne pas dépasser P_MAX au compteur.
+  mode: single
+  max_exceeded: silent
+  triggers:
+    - trigger: state
+      entity_id: sensor.puissance_compteur
+      id: mesure
+    - trigger: state
+      entity_id: sensor.garage_borne_de_recharge_courant
+      id: mesure
+    - trigger: time_pattern
+      minutes: /1
+      id: mesure
+    - trigger: state
+      entity_id: sensor.garage_borne_de_recharge_etat
+      from: available
+      id: mesure
+    - trigger: state
+      entity_id: sensor.garage_borne_de_recharge_etat
+      to: available
+      id: debranchee
+  conditions:
+    - condition: or
+      conditions:
+        - condition: trigger
+          id: debranchee
+        - condition: state
+          entity_id: sensor.garage_borne_de_recharge_etat
+          state: [connected, need_auth, charging, paused, paused_by_scheduler]
+  actions:
+    - variables:
+        actuel: "{{ states('number.garage_borne_de_recharge_limite_dynamique') | int(0) }}"
+    - choose:
+        # voiture débranchée : on rend toute la puissance
+        - conditions:
+            - condition: trigger
+              id: debranchee
+          sequence:
+            - if: "{{ actuel != 32 }}"
+              then:
+                - action: number.set_value
+                  target:
+                    entity_id: number.garage_borne_de_recharge_limite_dynamique
+                  data:
+                    value: 32
+        # compteur muet depuis 5 min : prudence, 16 A au plus
+        - conditions:
+            - condition: template
+              value_template: >-
+                {{ not has_value('sensor.puissance_compteur')
+                   or (now() - states.sensor.puissance_compteur.last_reported).total_seconds() > 300 }}
+          sequence:
+            - if: "{{ actuel > 16 }}"
+              then:
+                - action: number.set_value
+                  target:
+                    entity_id: number.garage_borne_de_recharge_limite_dynamique
+                  data:
+                    value: 16
+      default:
+        - variables:
+            p_max: 11500   # P_MAX
+            tension: >-
+              {% set v = states('sensor.garage_borne_de_recharge_tension') | float(0) %}
+              {{ v if 180 < v < 260 else 230 }}
+            reseau: "{{ states('sensor.puissance_compteur') | float(0) }}"
+            # courant de la borne, borné par la limite actuelle (la mesure arrive avec un peu de retard)
+            i_borne: >-
+              {% set i = states('sensor.garage_borne_de_recharge_courant') | float(0) %}
+              {{ ([i, actuel] | min) if actuel > 0 else 0 }}
+            i_cible: "{{ (i_borne + (p_max - reseau) / tension) | round(0, 'floor') | int }}"
+            nouvelle: >-
+              {% if i_cible < 6 %}0{% elif actuel == 0 and i_cible < 7 %}0{% else %}{{ [i_cible, 32] | min }}{% endif %}
+            depuis: "{{ (now() - states.number.garage_borne_de_recharge_limite_dynamique.last_changed).total_seconds() | int }}"
+        - if: "{{ (nouvelle | int) < actuel or ((nouvelle | int) > actuel and depuis >= 60) }}"
+          then:
+            - action: number.set_value
+              target:
+                entity_id: number.garage_borne_de_recharge_limite_dynamique
+              data:
+                value: "{{ nouvelle | int }}"
+
+# 2/2 — filet de sécurité : délestage coupé → la borne retrouve 32 A
+# (à laisser toujours activée ; sans elle, couper le délestage pendant une pause
+#  laisserait la borne bloquée à 0 A)
+- id: borne_delestage_off
+  alias: Borne – délestage désactivé → 32 A
+  mode: single
+  triggers:
+    - trigger: state
+      entity_id: automation.borne_delestage   # l'entité de l'automatisation 1/2
+      from: "on"
+      to: "off"
+  actions:
+    - action: number.set_value
+      target:
+        entity_id: number.garage_borne_de_recharge_limite_dynamique
+      data:
+        value: 32
