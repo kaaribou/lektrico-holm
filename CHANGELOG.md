@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.0
+
+- **Pilotage intégré de la charge**, sans automatisation (Options → Pilotage de la charge) :
+  - sélecteur **Mode de charge** : Heures creuses, Maintenant (repasse en Heures creuses au débranchement), Arrêt ;
+  - **heures creuses** lues depuis une entité au choix (capteur de tarif, interrupteur…) ;
+  - **délestage** intégré (interrupteur dédié) : la limite suit la puissance du compteur, baisse immédiate, hausse au plus une fois par minute, pause sous 6 A, reprise à partir de 7 A, 16 A au plus si le compteur ne répond plus ;
+  - **courant de charge** réglable et capteur **Pilotage** qui explique la décision en cours.
+- Carte HOLM Borne 2.3 : trois boutons de mode, courant de charge avec raccourcis, état du pilotage ; le bouton Délestage commande l'interrupteur intégré.
+- Les automatisations d'exemple de la version 1.0 sont remplacées par le pilotage intégré.
+
 ## 1.0.0
 
 - Première version : borne Lektrico (1P7K, 3P22K) en local, interrogation économe pensée pour ne pas surcharger la borne.

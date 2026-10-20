@@ -128,7 +128,10 @@ SENSORS: tuple[S, ...] = (
 async def async_setup_entry(hass, entry, async_add_entities):
     c: LektricoCoordinator = entry.runtime_data
     three = c.ident["type"] == "3p22k"
-    async_add_entities(LektricoSensor(c, d) for d in SENSORS if three or not d.phases3)
+    entities = [LektricoSensor(c, d) for d in SENSORS if three or not d.phases3]
+    if getattr(c, "pilot", None):
+        entities.append(PilotSensor(c))
+    async_add_entities(entities)
 
 
 class LektricoSensor(LektricoEntity, SensorEntity):
@@ -166,3 +169,34 @@ class LektricoSensor(LektricoEntity, SensorEntity):
             w = self.coordinator.slow.get("Wifi_status.Get") or {}
             return {"bssid": w.get("bssid"), "reseau": w.get("sta_name")}
         return None
+
+
+class PilotSensor(LektricoEntity, SensorEntity):
+    """Ce que fait le pilotage en ce moment (texte), détails en attributs."""
+    _attr_icon = "mdi:robot-outline"
+
+    def __init__(self, c) -> None:
+        super().__init__(c, "sensor", "pilot", "pilotage")
+        self._pilot = c.pilot
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        self.async_on_remove(self._pilot.add_listener(self.async_write_ha_state))
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def native_value(self):
+        st = self._pilot.status
+        if st.get("state") == "init":
+            return None
+        return st.get("why")
+
+    @property
+    def extra_state_attributes(self):
+        st = self._pilot.status
+        return {"mode": st.get("mode"), "heures_creuses": st.get("hc"), "cible": st.get("target"),
+                "plafond_delestage": st.get("cap"), "limite": st.get("applied"), "delestage": st.get("delestage"),
+                "ecritures": self._pilot.writes}

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 DOMAIN = "lektrico_holm"
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 STATIC_PATH = "/lektrico_holm"
 CARD_NAME = "holm-borne-card.js"
 CARD_URL = f"{STATIC_PATH}/{CARD_NAME}"
@@ -37,3 +37,16 @@ CURRENTS_METHOD = "System_currents.Get"
 ERROR_KEYS = ("state_e_activated", "overtemp", "critical_temp", "overcurrent", "meter_fault", "voltage_error",
               "rcd_error", "rcd_test_error", "state_f_activated", "contactor_failure", "cp_diode_failure",
               "undervoltage_error", "overvoltage_error", "state_machine_na_error")
+
+# ---- pilotage de la charge (options « Pilotage ») ----
+CONF_PILOT = "pilot"
+CONF_METER = "meter_entity"
+CONF_MAX_POWER = "max_power"
+CONF_MAX_CURRENT = "max_current"
+CONF_HC_ENTITY = "hc_entity"
+CONF_HC_VALUES = "hc_values"
+DEFAULT_MAX_POWER = 11500    # W : 12 kVA moins une marge
+DEFAULT_MAX_CURRENT = 32     # A
+MODE_HC, MODE_NOW, MODE_STOP = "heures_creuses", "maintenant", "arret"
+MODES = [MODE_HC, MODE_NOW, MODE_STOP]
+SESSION_STATES = ("connected", "need_auth", "charging", "paused", "paused_by_scheduler")

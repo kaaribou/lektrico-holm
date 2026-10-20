@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.const import EntityCategory
+from homeassistant.helpers.restore_state import RestoreEntity
 
 from .coordinator import LektricoCoordinator
 from .entity import LektricoEntity
@@ -27,7 +28,10 @@ SWITCHES = (
 
 async def async_setup_entry(hass, entry, async_add_entities):
     c: LektricoCoordinator = entry.runtime_data
-    async_add_entities(LektricoSwitch(c, *s) for s in SWITCHES)
+    entities = [LektricoSwitch(c, *s) for s in SWITCHES]
+    if getattr(c, "pilot", None):
+        entities.append(DelestageSwitch(c))
+    async_add_entities(entities)
 
 
 class LektricoSwitch(LektricoEntity, SwitchEntity):
@@ -69,3 +73,28 @@ class LektricoSwitch(LektricoEntity, SwitchEntity):
 
     async def async_turn_off(self, **kwargs) -> None:
         await self._set(False)
+
+
+class DelestageSwitch(LektricoEntity, SwitchEntity, RestoreEntity):
+    """Délestage intégré : la limite suit la puissance du compteur pendant une session."""
+    _attr_icon = "mdi:transmission-tower-export"
+
+    def __init__(self, c) -> None:
+        super().__init__(c, "switch", "delestage", "delestage")
+        self._pilot = c.pilot
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        last = await self.async_get_last_state()
+        self._pilot.set_delestage(last.state != "off" if last else True, evaluate=False)
+        self.async_on_remove(self._pilot.add_listener(self.async_write_ha_state))
+
+    @property
+    def is_on(self) -> bool:
+        return self._pilot.delestage
+
+    async def async_turn_on(self, **kwargs) -> None:
+        self._pilot.set_delestage(True)
+
+    async def async_turn_off(self, **kwargs) -> None:
+        self._pilot.set_delestage(False)

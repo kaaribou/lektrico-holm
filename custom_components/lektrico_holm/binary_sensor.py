@@ -28,10 +28,19 @@ ERRORS = (
 )
 
 
+def _active_errors(c) -> bool:
+    """Le micrologiciel 1.20 lève parfois has_active_errors sans aucune erreur détaillée : on s'appuie sur le détail."""
+    if not c.value("has_active_errors"):
+        return False
+    if c.raw_errors:
+        return any(v is True for v in c.raw_errors.values())
+    return True
+
+
 async def async_setup_entry(hass, entry, async_add_entities):
     c: LektricoCoordinator = entry.runtime_data
     ents = [LektricoError(c, *e) for e in ERRORS]
-    ents += [LektricoFlag(c, "active_errors", "erreurs_actives", lambda c: bool(c.value("has_active_errors")), PB, None),
+    ents += [LektricoFlag(c, "active_errors", "erreurs_actives", _active_errors, PB, None),
              LektricoFlag(c, "paused", "en_pause", lambda c: bool(c.value("charger_is_paused")), None, None),
              LektricoFlag(c, "vehicle_connected", "vehicule_branche",
                           lambda c: str(c.value("charger_state")) in ("B", "C", "D"), BinarySensorDeviceClass.PLUG, None),
@@ -73,3 +82,10 @@ class LektricoFlag(LektricoEntity, BinarySensorEntity):
     def is_on(self):
         v = self._fn(self.coordinator)
         return None if v is None else bool(v)
+
+    @property
+    def extra_state_attributes(self):
+        if self._attr_unique_id.endswith("_active_errors"):
+            raw = self.coordinator.raw_errors
+            return {"erreurs": sorted(k for k, v in raw.items() if v is True or (isinstance(v, (int, float)) and not isinstance(v, bool) and v))}
+        return None

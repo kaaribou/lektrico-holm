@@ -40,6 +40,8 @@ class LektricoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.info: dict[str, Any] = dict(ident.get("info") or {})
         self.errors: dict[str, bool] = dict.fromkeys(ERROR_KEYS, False)
         self.last_success: float | None = None
+        self.raw_errors: dict[str, Any] = {}
+        self._errors_read = False
 
     def _next_slow(self) -> str | None:
         now = time.monotonic()
@@ -56,18 +58,26 @@ class LektricoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def _async_update_data(self) -> dict[str, Any]:
         try:
             self.info = await self.client.get("Charger_info.Get")
-            if self.info.get("has_active_errors"):
+            self._cycle += 1
+            # une seule lecture supplémentaire par cycle : les erreurs actives un cycle sur deux quand il y en a,
+            # sinon les courants système (limite dynamique) un cycle sur deux, ou une donnée lente due
+            if self.info.get("has_active_errors") and (self._cycle % 2 == 0 or not self._errors_read):
                 try:
                     err = await self.client.get("Active_errors.Get")
+                    self.raw_errors = dict(err or {})
                     self.errors = {k: bool(err.get(k, False)) for k in ERROR_KEYS}
                 except LektricoUnsupported:
                     pass
+                self._errors_read = True
             else:
-                self.errors = dict.fromkeys(ERROR_KEYS, False)
-                self._cycle += 1
-                # un cycle sur deux : courants système (limite dynamique…), sinon une donnée lente due
+                if not self.info.get("has_active_errors"):
+                    self.errors = dict.fromkeys(ERROR_KEYS, False)
+                    self.raw_errors = {}
+                    self._errors_read = False
                 slow = None
-                if CURRENTS_METHOD not in self.unsupported and (self._cycle % 2 == 1 or CURRENTS_METHOD not in self.slow):
+                busy = bool(self.info.get("has_active_errors"))   # un cycle sur deux déjà pris par les erreurs
+                turn = (self._cycle % 4 == 1) if busy else (self._cycle % 2 == 1)
+                if CURRENTS_METHOD not in self.unsupported and (turn or CURRENTS_METHOD not in self.slow):
                     slow = CURRENTS_METHOD
                 if slow is None:
                     slow = self._next_slow()

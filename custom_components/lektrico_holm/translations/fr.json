@@ -32,14 +32,39 @@
   "options": {
     "step": {
       "init": {
-        "title": "Options HOLM Lektrico",
+        "title": "Options",
+        "menu_options": {
+          "general": "Interrogation de la borne",
+          "pilot": "Pilotage de la charge (heures creuses, délestage)"
+        }
+      },
+      "general": {
+        "title": "Interrogation",
         "data": {
           "scan_interval": "Intervalle d'interrogation"
+        }
+      },
+      "pilot": {
+        "title": "Pilotage de la charge",
+        "description": "HOLM Lektrico choisit lui-même la limite dynamique de la borne : charge en heures creuses (ou tout de suite, ou arrêt) et délestage pour ne jamais dépasser la puissance de l'abonnement. Remplace les automatisations de délestage.",
+        "data": {
+          "pilot": "Activer le pilotage",
+          "hc_entity": "Entité « heures creuses »",
+          "hc_values": "Valeur(s) signifiant « heures creuses »",
+          "meter_entity": "Puissance consommée au compteur (délestage)",
+          "max_power": "Puissance maximale au compteur",
+          "max_current": "Courant maximal de la borne"
         },
         "data_description": {
-          "scan_interval": "Temps entre deux interrogations (15 à 300 s). En cas de problème, l'intervalle s'allonge tout seul jusqu'à 5 min."
+          "hc_entity": "Par exemple un capteur de tarif, un binary_sensor ou un input_boolean qui indique les heures creuses.",
+          "hc_values": "Séparées par des virgules : on, HC, 0.1589… Les nombres sont comparés comme des nombres.",
+          "meter_entity": "Facultatif : sans capteur, pas de délestage.",
+          "max_power": "Abonnement moins une marge : 12 kVA → 11 500 W, 9 kVA → 8 500 W, 6 kVA → 5 500 W."
         }
       }
+    },
+    "error": {
+      "hc_required": "Indiquez l'entité qui donne les heures creuses."
     }
   },
   "entity": {
@@ -179,6 +204,9 @@
       },
       "wifi_reconnects": {
         "name": "Reconnexions Wi-Fi"
+      },
+      "pilot": {
+        "name": "Pilotage"
       }
     },
     "binary_sensor": {
@@ -273,6 +301,9 @@
       },
       "mqtt": {
         "name": "MQTT"
+      },
+      "delestage": {
+        "name": "Délestage"
       }
     },
     "number": {
@@ -296,6 +327,9 @@
       },
       "car_minimum_current": {
         "name": "Courant minimal du véhicule"
+      },
+      "charge_current": {
+        "name": "Courant de charge"
       }
     },
     "button": {
@@ -319,6 +353,16 @@
       },
       "reboot": {
         "name": "Redémarrer"
+      }
+    },
+    "select": {
+      "charge_mode": {
+        "name": "Mode de charge",
+        "state": {
+          "heures_creuses": "Heures creuses",
+          "maintenant": "Maintenant",
+          "arret": "Arrêt"
+        }
       }
     }
   }

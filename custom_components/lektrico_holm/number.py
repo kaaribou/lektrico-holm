@@ -4,6 +4,8 @@ from __future__ import annotations
 from homeassistant.components.number import NumberDeviceClass, NumberEntity, NumberMode
 from homeassistant.const import EntityCategory, PERCENTAGE, UnitOfElectricCurrent, UnitOfPower, UnitOfTime
 
+from homeassistant.helpers.restore_state import RestoreEntity
+
 from .coordinator import LektricoCoordinator
 from .entity import LektricoEntity
 
@@ -23,7 +25,10 @@ NUMBERS = (
 
 async def async_setup_entry(hass, entry, async_add_entities):
     c: LektricoCoordinator = entry.runtime_data
-    async_add_entities(LektricoNumber(c, *n) for n in NUMBERS)
+    entities = [LektricoNumber(c, *n) for n in NUMBERS]
+    if getattr(c, "pilot", None):
+        entities.append(ChargeCurrentNumber(c))
+    async_add_entities(entities)
 
 
 class LektricoNumber(LektricoEntity, NumberEntity):
@@ -70,3 +75,38 @@ class LektricoNumber(LektricoEntity, NumberEntity):
         await self.coordinator.command(coro)
         f, grp = self._read
         self.coordinator.patch(grp, f, v)
+
+
+class ChargeCurrentNumber(LektricoEntity, NumberEntity, RestoreEntity):
+    """Courant de charge souhaité par le pilotage (le délestage peut le réduire)."""
+    _attr_mode = NumberMode.SLIDER
+    _attr_native_min_value, _attr_native_step = 6, 1
+    _attr_native_unit_of_measurement = UnitOfElectricCurrent.AMPERE
+    _attr_device_class = NumberDeviceClass.CURRENT
+    _attr_icon = "mdi:current-ac"
+
+    def __init__(self, c) -> None:
+        super().__init__(c, "number", "charge_current", "courant_de_charge")
+        self._pilot = c.pilot
+        self._attr_native_max_value = c.pilot.max_a
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        last = await self.async_get_last_state()
+        try:
+            v = float(last.state) if last else self._pilot.max_a
+        except (TypeError, ValueError):
+            v = self._pilot.max_a
+        self._pilot.set_charge_current(v, evaluate=False)
+        self.async_on_remove(self._pilot.add_listener(self.async_write_ha_state))
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def native_value(self) -> float:
+        return float(self._pilot.charge_a)
+
+    async def async_set_native_value(self, value: float) -> None:
+        self._pilot.set_charge_current(value)

@@ -13,11 +13,12 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 
 from .api import LektricoClient, LektricoError
-from .const import CARD_NAME, CARD_URL, DOMAIN, STATIC_PATH, VERSION
+from .const import CARD_NAME, CARD_URL, CONF_PILOT, DOMAIN, STATIC_PATH, VERSION
+from .controller import ChargeController
 from .coordinator import LektricoCoordinator
 
 _LOGGER = logging.getLogger(__name__)
-PLATFORMS = [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.SWITCH, Platform.NUMBER, Platform.BUTTON]
+PLATFORMS = [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.SWITCH, Platform.NUMBER, Platform.BUTTON, Platform.SELECT]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -30,8 +31,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         raise ConfigEntryNotReady(f"Borne injoignable : {err}") from err
     coordinator = LektricoCoordinator(hass, entry, client, ident)
     await coordinator.async_config_entry_first_refresh()
+    coordinator.pilot = ChargeController(hass, coordinator, dict(entry.options)) if entry.options.get(CONF_PILOT) else None
     entry.runtime_data = coordinator
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    if coordinator.pilot:
+        coordinator.pilot.start()
+        entry.async_on_unload(coordinator.pilot.stop)
     entry.async_on_unload(entry.add_update_listener(_reload))
     return True
 

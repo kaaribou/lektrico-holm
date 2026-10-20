@@ -32,14 +32,39 @@
   "options": {
     "step": {
       "init": {
-        "title": "HOLM Lektrico options",
+        "title": "Options",
+        "menu_options": {
+          "general": "Charger polling",
+          "pilot": "Charge control (off-peak, load shedding)"
+        }
+      },
+      "general": {
+        "title": "Polling",
         "data": {
           "scan_interval": "Polling interval"
+        }
+      },
+      "pilot": {
+        "title": "Charge control",
+        "description": "HOLM Lektrico sets the charger's dynamic limit itself: charge during off-peak hours (or now, or stop) and load shedding so you never exceed your contract power. Replaces the load-shedding automations.",
+        "data": {
+          "pilot": "Enable charge control",
+          "hc_entity": "Off-peak entity",
+          "hc_values": "Value(s) meaning off-peak",
+          "meter_entity": "Grid power at the meter (load shedding)",
+          "max_power": "Maximum power at the meter",
+          "max_current": "Charger maximum current"
         },
         "data_description": {
-          "scan_interval": "Time between two polls (15–300 s). On errors the interval grows automatically up to 5 min."
+          "hc_entity": "For example a tariff sensor, a binary_sensor or an input_boolean telling off-peak hours.",
+          "hc_values": "Comma-separated: on, HC, 0.1589… Numbers are compared as numbers.",
+          "meter_entity": "Optional: no sensor, no load shedding.",
+          "max_power": "Contract minus a margin: 12 kVA → 11,500 W, 9 kVA → 8,500 W, 6 kVA → 5,500 W."
         }
       }
+    },
+    "error": {
+      "hc_required": "Select the entity telling off-peak hours."
     }
   },
   "entity": {
@@ -179,6 +204,9 @@
       },
       "wifi_reconnects": {
         "name": "Wi-Fi reconnections"
+      },
+      "pilot": {
+        "name": "Charge control"
       }
     },
     "binary_sensor": {
@@ -273,6 +301,9 @@
       },
       "mqtt": {
         "name": "MQTT"
+      },
+      "delestage": {
+        "name": "Load shedding"
       }
     },
     "number": {
@@ -296,6 +327,9 @@
       },
       "car_minimum_current": {
         "name": "Vehicle minimum current"
+      },
+      "charge_current": {
+        "name": "Charging current"
       }
     },
     "button": {
@@ -319,6 +353,16 @@
       },
       "reboot": {
         "name": "Restart"
+      }
+    },
+    "select": {
+      "charge_mode": {
+        "name": "Charge mode",
+        "state": {
+          "heures_creuses": "Off-peak hours",
+          "maintenant": "Now",
+          "arret": "Stop"
+        }
       }
     }
   }

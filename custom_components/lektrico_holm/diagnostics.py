@@ -13,6 +13,6 @@ async def async_get_config_entry_diagnostics(hass, entry):
         "interval_s": c.update_interval.total_seconds() if c.update_interval else None,
         "requests": c.client.requests, "failures": c.client.failures, "consecutive_failures": c.fails,
         "unsupported": sorted(c.unsupported),
-        "charger_info": c.info, "errors": c.errors,
+        "charger_info": c.info, "errors": c.errors, "active_errors_raw": c.raw_errors,
         "slow": async_redact_data(c.slow, TO_REDACT),
     }

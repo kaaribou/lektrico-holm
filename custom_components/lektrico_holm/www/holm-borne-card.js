@@ -1,4 +1,4 @@
-/* holm-borne-card — HOLM Cards — licence MIT — v2.2.0 */
+/* holm-borne-card — HOLM Cards — licence MIT — v2.3.1 */
 /* HOLM Borne — carte de borne de recharge (HOLM Lektrico, intégration Lektrico officielle et compatibles)
  * - Illustration animée borne → câble → voiture selon l'état.
  * - Onglets : Charge (mesures, limite, actions) · Réglages (interrupteurs et curseurs) ·
@@ -7,7 +7,7 @@
  * Les entités sont détectées depuis l'appareil de l'entité « État » (clé de traduction, sinon suffixe).
  */
 (() => {
-  const VERSION = "2.2.0";
+  const VERSION = "2.3.1";
   // clé -> [translation_key, suffixe d'entity_id, domaine]
   const MAP = {
     state: ["state", "etat", "sensor"], power: ["power", "puissance", "sensor"], current: ["current", "courant", "sensor"],
@@ -37,6 +37,8 @@
     start: ["charge_start", "demarrer_la_recharge", "button"], stop: ["charge_stop", "arreter_la_recharge", "button"],
     pause: ["charge_pause", "mettre_en_pause", "button"], resume: ["charge_resume", "reprendre_la_recharge", "button"],
     override: ["charging_schedule_override", "derogation_du_programme_de_charge", "button"], reboot: ["reboot", "redemarrer", "button"],
+    mode: ["charge_mode", "mode_de_charge", "select"], dl_sw: ["delestage", "delestage", "switch"],
+    pilot: ["pilot", "pilotage", "sensor"], charge_a: ["charge_current", "courant_de_charge", "number"],
   };
   const DIAG = [
     ["state_e_activated", "erreur_ev", "Erreur EV", "mdi:car-off"], ["overtemp", "limitation_thermique", "Limitation thermique", "mdi:thermometer-alert"],
@@ -200,17 +202,18 @@
       this._card = root.querySelector("ha-card");
       const card = this._card;
       card.addEventListener("click", (ev) => {
-        const t = ev.target.closest("[data-tab],[data-more],[data-btn],[data-sw],#dl,[data-reboot],[data-preset]");
+        const t = ev.target.closest("[data-tab],[data-more],[data-btn],[data-sw],#dl,[data-reboot],[data-preset],[data-mode]");
         if (!t || !card.contains(t)) return;
         if (t.dataset.tab) { this._tab = t.dataset.tab; this._render(true); return; }
         if (t.id === "dl") return this._toggleDelestage();
         if (t.dataset.reboot !== undefined) return this._reboot();
-        if (t.dataset.preset) return this._setNum("limit", Number(t.dataset.preset));
+        if (t.dataset.mode) return this._setMode(t.dataset.mode);
+        if (t.dataset.preset) return this._setNum(t.dataset.pk || "limit", Number(t.dataset.preset));
         if (t.dataset.btn) return this._press(t.dataset.btn);
         if (t.dataset.sw) return this._toggle(t.dataset.sw);
         if (t.dataset.more) return this._more(this._e[t.dataset.more] || t.dataset.more);
       });
-      card.addEventListener("contextmenu", (ev) => { if (ev.target.closest("#dl")) { ev.preventDefault(); this._more(this._config.delestage_entity); } });
+      card.addEventListener("contextmenu", (ev) => { if (ev.target.closest("#dl")) { ev.preventDefault(); this._more(this._dlId()); } });
       card.addEventListener("input", (ev) => {
         const r = ev.target.closest("input[data-num]"); if (!r) return;
         this._drag = r.dataset.num;
@@ -241,8 +244,15 @@
       this._call("switch", on ? "turn_off" : "turn_on", { entity_id: this._e[k] });
       this._render(true);
     }
+    _dlId() { return this._e.dl_sw || this._config.delestage_entity; }
+    _setMode(opt) {
+      const id = this._e.mode; if (!id) return;
+      this._opt.mode = { v: opt, ts: Date.now() };
+      this._call("select", "select_option", { entity_id: id, option: opt });
+      this._render(true);
+    }
     _toggleDelestage() {
-      const id = this._config.delestage_entity; if (!id || !this._hass.states[id]) return;
+      const id = this._dlId(); if (!id || !this._hass.states[id]) return;
       const on = this._optv("dl", this._hass.states[id].state) === "on";
       this._opt.dl = { v: on ? "off" : "on", ts: Date.now() };
       this._call("homeassistant", on ? "turn_off" : "turn_on", { entity_id: id });
@@ -285,7 +295,7 @@
       card.classList.toggle("active", charging);
       $("bicon").setAttribute("icon", st.icon);
       $("status").textContent = charging && pw != null ? `${st.l} · ${fmtN(pw, 1)} kW` : st.l;
-      const dlS = cfg.delestage_entity ? h.states[cfg.delestage_entity] : null;
+      const dlS = this._dlId() ? h.states[this._dlId()] : null;
       $("dl").style.display = dlS ? "" : "none";
       if (dlS) {
         const on = this._optv("dl", dlS.state) === "on";
@@ -347,13 +357,27 @@
       ].join("");
       // limite
       let lim = "";
-      if (this._e.limit && this._ok("limit")) {
+      if ((this._e.limit && this._ok("limit")) || (this._e.mode && this._s("mode"))) {
         const rs = this._s("reason"), r = rs ? rs.state : null;
-        const dlS = this._config.delestage_entity ? this._hass.states[this._config.delestage_entity] : null;
+        const dlS = this._dlId() ? this._hass.states[this._dlId()] : null;
         const chips = [
           ["allowed", "Autorisé", this._n("allowed")], ["user_limit", "Utilisateur", this._n("user_limit")],
           ["upow_cur", "Puissance max", this._n("upow_cur")], ["install", "Installation", this._n("install")],
         ].filter(([, , v]) => v != null).map(([k, l, v]) => `<button class="chip" data-more="${k}"><small>${l}</small><b>${fmtN(v)} A</b><small class="kw">${this._kw(v)}</small></button>`).join("");
+        if (this._e.mode && this._s("mode")) {
+          const ms = this._s("mode"), mode = this._optv("mode", ms.state);
+          const MODES = [["heures_creuses", "mdi:weather-night", "Heures creuses"], ["maintenant", "mdi:flash", "Maintenant"], ["arret", "mdi:stop-circle-outline", "Arrêt"]];
+          const ps = this._s("pilot"), applied = this._n("limit"), ca = this._optv("charge_a", this._n("charge_a"));
+          const mx = Number(this._s("charge_a")?.attributes?.max ?? 32);
+          const pre = [6, 10, 16, 20, 25, 32].filter((a) => a <= mx);
+          lim = `<div class="block lim pilot${r && r !== "no_limit" ? " capped" : ""}">
+            <div class="modes">${MODES.map(([k, ic, l]) => `<button class="md${mode === k ? " on" : ""}" data-mode="${k}"><ha-icon icon="${ic}"></ha-icon><span>${l}</span></button>`).join("")}</div>
+            <div class="pst" data-more="pilot"><ha-icon icon="mdi:robot-outline"></ha-icon><span>${ps ? esc(ps.state) : ""}</span>${applied != null ? `<b>${applied ? `${fmtN(applied)} A · ${this._kw(applied)}` : "pause"}</b>` : ""}</div>
+            ${mode !== "arret" && this._e.charge_a ? `${this._slider("charge_a", "mdi:current-ac", "Courant de charge", dlS && this._optv("dl", dlS.state) === "on" ? "souhaité — le délestage peut le réduire" : "souhaité")}
+            <div class="presets">${pre.map((a) => `<button class="pre${ca === a ? " on" : ""}" data-preset="${a}" data-pk="charge_a"><b>${a} A</b><small>${this._kw(a)}</small></button>`).join("")}</div>` : ""}
+            <div class="reason" data-more="reason">${r ? `Raison de la limite : <b>${esc(REASON[r] || r)}</b>` : ""}</div>
+            <div class="chips">${chips}</div></div>`;
+        } else {
         const auto = !!dlS && this._optv("dl", dlS.state) === "on";
         const curLim = this._optv("limit", this._n("limit"));
         const presets = auto ? "" : `<div class="presets">${[6, 10, 16, 20, 25, 32].map((a) =>
@@ -365,6 +389,7 @@
           ${presets}
           <div class="reason" data-more="reason">${r ? `Raison de la limite : <b>${esc(REASON[r] || r)}</b>` : ""}</div>
           <div class="chips">${chips}</div></div>`;
+        }
       }
       // actions
       const s = so.state;
@@ -594,6 +619,14 @@
       .slider { position: relative; height: 26px; margin-top: 4px; }
       .srow.locked .slider { opacity: .55; } .srow.locked input[type=range] { cursor: not-allowed; }
       .presets { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin: 8px 0 4px; }
+      .modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px; }
+      .md { display: flex; align-items: center; justify-content: center; gap: 7px; height: 40px; border-radius: 12px; font-weight: 700; font-size: 13px;
+            background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); color: var(--tx2); transition: background .25s, color .25s, border-color .25s; }
+      .md ha-icon { --mdc-icon-size: 18px; }
+      .md.on { background: rgba(var(--m), .22); border-color: rgba(var(--m), .6); color: var(--tx); box-shadow: 0 0 14px rgba(var(--m), .25); }
+      .pst { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,.04); font-size: 12.5px; color: var(--tx2); margin-bottom: 8px; cursor: pointer; }
+      .pst ha-icon { --mdc-icon-size: 16px; color: rgb(var(--m)); } .pst span { flex: 1; min-width: 0; } .pst b { color: var(--tx); white-space: nowrap; font-variant-numeric: tabular-nums; }
+      @container (max-width: 430px) { .md span { font-size: 12px; } .md ha-icon { display: none; } }
       .pre { display: flex; flex-direction: column; align-items: center; padding: 6px 2px; border-radius: 10px; border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.04); color: var(--tx); cursor: pointer; font: inherit; }
       .pre b { font-size: 12.5px; } .pre small { font-size: 9.5px; color: var(--tx2); }
       .pre.on { background: rgba(var(--m), .22); border-color: rgba(var(--m), .6); }
@@ -677,7 +710,7 @@
             { name: "show_diagnostic", selector: { boolean: {} } },
           ] },
         ];
-        const L = { entity: "Entité « État » de la borne", name: "Nom affiché", delestage_entity: "Délestage (automatisation, optionnel)",
+        const L = { entity: "Entité « État » de la borne", name: "Nom affiché", delestage_entity: "Délestage (si non intégré : automatisation)",
           default_tab: "Onglet affiché par défaut", car_color: "Couleur de la voiture (ex. #4a5d70)", show_settings: "Onglet Réglages", show_diagnostic: "Onglet Diagnostic" };
         f.computeLabel = (s) => L[s.name] || s.name;
         f.addEventListener("value-changed", (ev) => {
