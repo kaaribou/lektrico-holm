@@ -19,6 +19,10 @@ HOLM Lektrico remplace l'intégration Lektrico officielle. Elle parle à la born
 - 🔌 **Pilotage intégré** : charge en heures creuses, « maintenant » ou arrêt, et délestage pour ne jamais dépasser votre abonnement, sans automatisation.
 - 🔗 **Compatible** avec les identifiants de l'intégration officielle : vos cartes et automatisations continuent de fonctionner.
 
+| Charge et pilotage | Réglages | Diagnostic |
+|---|---|---|
+| ![Onglet Charge](docs/images/carte-charge.png) | ![Onglet Réglages](docs/images/carte-reglages.png) | ![Onglet Diagnostic](docs/images/carte-diagnostic.png) |
+
 ---
 
 ## Installation
@@ -92,6 +96,8 @@ La carte fonctionne aussi avec l'intégration Lektrico officielle : les entités
 ## 🔌 Pilotage de la charge : heures creuses et délestage
 
 HOLM Lektrico peut **piloter lui-même la borne**, sans aucune automatisation : Paramètres → Appareils et services → HOLM Lektrico → **Configurer** → **Pilotage de la charge**.
+
+<img src="docs/images/options-pilotage.png" alt="Réglages du pilotage" width="420">
 
 | Réglage | Rôle |
 |---|---|
