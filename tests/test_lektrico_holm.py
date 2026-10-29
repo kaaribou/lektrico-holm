@@ -213,6 +213,8 @@ async def test_pilot_off_peak(hass, charger, info_reset):
     assert st.get("switch.garage_borne_de_recharge_delestage").state == "on"
     assert _dyn(charger)[-1] == 0                          # heures pleines : pause
     assert "attente des heures creuses" in st.get("sensor.garage_borne_de_recharge_pilotage").state
+    # la carte retrouve l'entité heures creuses du pilotage (décompte HOLM HP/HC)
+    assert st.get("sensor.garage_borne_de_recharge_pilotage").attributes["entite_heures_creuses"] == "input_boolean.hc"
     hass.states.async_set("input_boolean.hc", "on")
     await hass.async_block_till_done()
     assert _dyn(charger)[-1] == 32                         # heures creuses : pleine puissance

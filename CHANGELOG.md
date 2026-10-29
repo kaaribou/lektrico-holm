@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.0
+
+- **Carte HOLM Borne 2.6 — décompte des heures creuses** (#1) : en mode Heures creuses, la carte affiche « Heures creuses dans 4 h 16 (à 23h28) » et le tarif en cours, ou « Heures creuses jusqu'à 05h28 » pendant les heures creuses. L'entité vient de HOLM HP/HC (`binary_sensor.heures_creuses`), détectée automatiquement : celle choisie dans le pilotage si elle convient, sinon la première qui expose `prochaine_bascule`, ou l'option `hc_entity` de la carte. Sans HOLM HP/HC, rien ne change.
+- **Photo personnalisée** dans la carte : option « Photo » (médiathèque ou adresse d'image, cadrage remplir ou image entière) à la place de l'illustration ; contour lumineux et barre animée en charge, barre fixe quand le véhicule est branché, contour qui clignote en erreur.
+- **Protection contre les actions involontaires** : le courant de charge souhaité passe dans l'onglet Réglages (l'onglet Charge en affiche un résumé qui y mène d'un toucher) ; tous les curseurs ne réagissent plus qu'en saisissant la pastille et en la faisant glisser horizontalement.
+- Capteur Pilotage : nouvel attribut `entite_heures_creuses`.
+- README : HOLM HP/HC conseillé comme source des heures creuses.
+
 ## 1.1.0
 
 - **Pilotage intégré de la charge**, sans automatisation (Options → Pilotage de la charge) :

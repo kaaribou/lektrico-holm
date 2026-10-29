@@ -1,13 +1,14 @@
-/* holm-borne-card — HOLM Cards — licence MIT — v2.3.1 */
+/* holm-borne-card — HOLM Cards — licence MIT — v2.6.0 */
 /* HOLM Borne — carte de borne de recharge (HOLM Lektrico, intégration Lektrico officielle et compatibles)
- * - Illustration animée borne → câble → voiture selon l'état.
+ * - Illustration animée borne → câble → voiture selon l'état, ou votre photo (avec animation de charge).
  * - Onglets : Charge (mesures, limite, actions) · Réglages (interrupteurs et curseurs) ·
  *   Statistiques (compteurs) · Diagnostic (défauts, Wi-Fi, santé de la liaison, courants système).
  * - Délestage : interrupteur optionnel (automatisation) intégré à l'entête.
+ * - Mode Heures creuses : décompte jusqu'aux prochaines heures creuses (HOLM HP/HC, détecté automatiquement).
  * Les entités sont détectées depuis l'appareil de l'entité « État » (clé de traduction, sinon suffixe).
  */
 (() => {
-  const VERSION = "2.3.1";
+  const VERSION = "2.6.0";
   // clé -> [translation_key, suffixe d'entity_id, domaine]
   const MAP = {
     state: ["state", "etat", "sensor"], power: ["power", "puissance", "sensor"], current: ["current", "courant", "sensor"],
@@ -136,11 +137,17 @@
     setConfig(config) {
       if (!config || !config.entity) throw new Error("Choisis l'entité « État » de la borne.");
       this._config = { show_diagnostic: true, show_settings: true, car_color: "#4a5d70", default_tab: "charge", ...config };
-      this._e = null; this._opt = {}; this._confirm = null; this._tab = this._config.default_tab;
+      this._e = null; this._imgKey = null; this._imgShown = null; this._opt = {}; this._confirm = null; this._tab = this._config.default_tab;
       if (!this.shadowRoot) this.attachShadow({ mode: "open" });
       this._built = false;
       if (this._hass) this.hass = this._hass;
     }
+    connectedCallback() {
+      clearInterval(this._tick);
+      // le décompte des heures creuses avance même si aucune entité ne change
+      this._tick = setInterval(() => { if (this._built && this._hass && this._tab === "charge" && !this._drag) this._render(); }, 30000);
+    }
+    disconnectedCallback() { clearInterval(this._tick); this._tick = null; }
     getCardSize() { return 10; }
     getGridOptions() { return { columns: 12, min_columns: 6, rows: "auto" }; }
 
@@ -149,7 +156,18 @@
       if (!this._config) return;
       if (!this._e) this._detect();
       if (!this._built) this._build();
+      this._resolveImg();
       this._render();
+    }
+    // photo : média de la médiathèque (résolu en URL signée) ou adresse directe
+    _resolveImg() {
+      const m = this._config.image_media, id = m && m.media_content_id;
+      if (!id) { this._img = null; this._imgKey = null; return; }
+      if (this._imgKey === id) return;
+      this._imgKey = id;
+      this._hass.callWS({ type: "media_source/resolve_media", media_content_id: id, expires: 86400 })
+        .then((r) => { this._img = r.url.startsWith("http") ? r.url : this._hass.hassUrl(r.url); this._render(); })
+        .catch(() => { this._img = null; });
     }
 
     _detect() {
@@ -181,6 +199,33 @@
       return o.v;
     }
 
+    // ---- heures creuses (HOLM HP/HC) ----
+    // entité : option de la carte, sinon celle du pilotage HOLM Lektrico, sinon binary_sensor exposant prochaine_bascule
+    _hcEnt() {
+      const h = this._hass, ok = (id) => { const s = id && h.states[id]; return !!s && s.attributes.prochaine_bascule !== undefined; };
+      if (this._config.hc_entity) return ok(this._config.hc_entity) ? this._config.hc_entity : null;
+      const fromPilot = this._s("pilot")?.attributes?.entite_heures_creuses;
+      if (ok(fromPilot)) return fromPilot;
+      if (ok(this._hcAuto)) return this._hcAuto;
+      this._hcAuto = ok("binary_sensor.heures_creuses") ? "binary_sensor.heures_creuses"
+        : Object.keys(h.states).find((k) => k.startsWith("binary_sensor.") && h.states[k].attributes.prochaine_bascule !== undefined && h.states[k].attributes.prochaine_periode !== undefined) || null;
+      return this._hcAuto;
+    }
+    _hcLine() {
+      const id = this._hcEnt(); if (!id) return "";
+      const s = this._hass.states[id], a = s.attributes;
+      if (!["on", "off"].includes(s.state)) return "";
+      const on = s.state === "on", next = a.prochaine_bascule ? new Date(a.prochaine_bascule) : null;
+      if (!next || isNaN(next)) return "";
+      const now = new Date(), min = Math.max(0, Math.round((next - now) / 60000));
+      const hm = next.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }).replace(":", "h");
+      const day = next.toDateString() === now.toDateString() ? "" : new Date(now.getTime() + 864e5).toDateString() === next.toDateString() ? "demain " : next.toLocaleDateString("fr-FR", { weekday: "long" }) + " ";
+      const dur = min >= 60 ? `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, "0")}` : `${min} min`;
+      const txt = on ? `Heures creuses jusqu'à <b>${day}${hm}</b>` : `Heures creuses dans <b>${dur}</b> <small>(à ${day}${hm})</small>`;
+      const t = Number(a.tarif), tarif = isFinite(t) && a.tarif != null ? `<em>${on ? "HC" : "HP"} · ${fmtN(t, 4)} €/kWh</em>` : "";
+      return `<div class="hcd${on ? " on" : ""}" data-more="${esc(id)}"><ha-icon icon="${on ? "mdi:weather-night" : "mdi:timer-sand"}"></ha-icon><span>${txt}</span>${tarif}</div>`;
+    }
+
     _build() {
       const root = this.shadowRoot;
       root.innerHTML = `<style>${HolmBorneCard.css()}</style>
@@ -192,7 +237,7 @@
             <div class="ttl" data-more="state"><div class="name" id="name"></div><div class="status"><span class="dot"></span><span id="status"></span></div></div>
             <button class="dl" id="dl" title="Délestage"><ha-icon icon="mdi:transmission-tower-export"></ha-icon><span id="dltxt">Délestage</span></button>
           </div>
-          <div class="hero">${ILLU}<div class="big"><b id="pw">–</b><small>kW</small></div><div class="sub" id="sub"></div></div>
+          <div class="hero" id="hero">${ILLU}<div class="photo" id="photo"><i class="pglow"></i><i class="pbar"></i></div><div class="big"><b id="pw">–</b><small>kW</small></div><div class="sub" id="sub"></div></div>
           <div class="tabs" id="tabs">${TABS.map(([k, i, l]) => `<button data-tab="${k}"><ha-icon icon="${i}"></ha-icon><span>${l}</span><i class="badge-dot" id="tb-${k}"></i></button>`).join("")}</div>
           <div class="pane" id="pane"></div>
         </div>
@@ -214,19 +259,49 @@
         if (t.dataset.more) return this._more(this._e[t.dataset.more] || t.dataset.more);
       });
       card.addEventListener("contextmenu", (ev) => { if (ev.target.closest("#dl")) { ev.preventDefault(); this._more(this._dlId()); } });
-      card.addEventListener("input", (ev) => {
-        const r = ev.target.closest("input[data-num]"); if (!r) return;
-        this._drag = r.dataset.num;
+      // Curseurs protégés contre les gestes involontaires : il faut saisir la pastille et la faire glisser
+      // horizontalement. Un toucher sur la piste ou un défilement vertical de la page ne change rien.
+      const show = (r) => {
         const out = r.closest(".srow")?.querySelector("output"); if (out) out.innerHTML = this._fmtNum(r.dataset.num, +r.value);
         const fill = r.parentElement.querySelector(".fill"); if (fill) fill.style.width = `${((r.value - r.min) / (r.max - r.min)) * 100}%`;
+      };
+      const valAt = (r, x) => {
+        const b = r.getBoundingClientRect(), mn = +r.min, mx = +r.max, st = +r.step || 1;
+        const f = Math.max(0, Math.min(1, (x - b.left - 11) / Math.max(1, b.width - 22)));
+        return Math.round((mn + f * (mx - mn)) / st) * st;
+      };
+      const thumbX = (r) => { const b = r.getBoundingClientRect(); return b.left + 11 + ((+r.value - +r.min) / ((+r.max - +r.min) || 1)) * (b.width - 22); };
+      let g = null;
+      card.addEventListener("pointerdown", (ev) => {
+        const sl = ev.target.closest(".slider"); if (!sl) return;
+        const r = sl.querySelector("input[data-num]"); if (!r || r.disabled) return;
+        if (Math.abs(ev.clientX - thumbX(r)) > 24) return;          // pas sur la pastille : on ignore
+        g = { r, sl, id: ev.pointerId, x0: ev.clientX, y0: ev.clientY, active: false, v0: r.value };
       });
-      card.addEventListener("change", (ev) => {
-        const r = ev.target.closest("input[data-num]"); if (!r) return;
+      card.addEventListener("pointermove", (ev) => {
+        if (!g || ev.pointerId !== g.id) return;
+        const dx = Math.abs(ev.clientX - g.x0), dy = Math.abs(ev.clientY - g.y0);
+        if (!g.active) {
+          if (dy > 8 && dy > dx) { g = null; return; }               // défilement de la page
+          if (dx < 8) return;
+          g.active = true; this._drag = g.r.dataset.num;
+          try { g.sl.setPointerCapture(ev.pointerId); } catch (e) { /* rien */ }
+        }
+        ev.preventDefault();
+        g.r.value = valAt(g.r, ev.clientX); show(g.r);
+      });
+      const end = (ev, commit) => {
+        if (!g || (ev && ev.pointerId !== g.id)) return;
+        const { r, active, v0 } = g; g = null;
+        if (!active) return;
         this._drag = null;
+        if (!commit || String(r.value) === String(v0)) { r.value = v0; show(r); return; }
         const id = this._e[r.dataset.num]; if (!id) return;
         this._opt[r.dataset.num] = { v: Number(r.value), ts: Date.now() };
         this._call("number", "set_value", { entity_id: id, value: Number(r.value) });
-      });
+      };
+      card.addEventListener("pointerup", (ev) => end(ev, true));
+      card.addEventListener("pointercancel", (ev) => end(ev, false));
       this._built = true;
     }
 
@@ -286,6 +361,10 @@
       card.classList.toggle("unav", unav);
       $("name").textContent = cfg.name || (so && so.attributes.friendly_name ? so.attributes.friendly_name.replace(/\s*(État|Etat|State)$/i, "") : "Borne de recharge");
       card.style.setProperty("--car", cfg.car_color);
+      const img = this._img || cfg.image || "";
+      $("hero").classList.toggle("hasimg", !!img);
+      if (img && this._imgShown !== img) { $("photo").style.backgroundImage = `url("${String(img).replace(/"/g, "%22")}")`; this._imgShown = img; }
+      $("photo").style.backgroundSize = cfg.image_fit === "contain" ? "contain" : "cover";
       if (unav) { $("status").textContent = "Indisponible"; return; }
       const st = STATES[so.state] || { l: so.state, d: "", rgb: "150,160,178", icon: "mdi:ev-station", fx: "idle" };
       const pw = this._n("power"), en = this._n("energy"), tm = this._n("time");
@@ -373,8 +452,8 @@
           lim = `<div class="block lim pilot${r && r !== "no_limit" ? " capped" : ""}">
             <div class="modes">${MODES.map(([k, ic, l]) => `<button class="md${mode === k ? " on" : ""}" data-mode="${k}"><ha-icon icon="${ic}"></ha-icon><span>${l}</span></button>`).join("")}</div>
             <div class="pst" data-more="pilot"><ha-icon icon="mdi:robot-outline"></ha-icon><span>${ps ? esc(ps.state) : ""}</span>${applied != null ? `<b>${applied ? `${fmtN(applied)} A · ${this._kw(applied)}` : "pause"}</b>` : ""}</div>
-            ${mode !== "arret" && this._e.charge_a ? `${this._slider("charge_a", "mdi:current-ac", "Courant de charge", dlS && this._optv("dl", dlS.state) === "on" ? "souhaité — le délestage peut le réduire" : "souhaité")}
-            <div class="presets">${pre.map((a) => `<button class="pre${ca === a ? " on" : ""}" data-preset="${a}" data-pk="charge_a"><b>${a} A</b><small>${this._kw(a)}</small></button>`).join("")}</div>` : ""}
+            ${mode === "heures_creuses" ? this._hcLine() : ""}
+            ${mode !== "arret" && this._e.charge_a && ca != null ? `<button class="cwant" data-tab="settings" title="Modifier dans l'onglet Réglages"><ha-icon icon="mdi:current-ac"></ha-icon><span>Courant de charge souhaité</span><b>${fmtN(ca)} A · ${this._kw(ca)}</b><ha-icon class="go" icon="mdi:tune-variant"></ha-icon></button>` : ""}
             <div class="reason" data-more="reason">${r ? `Raison de la limite : <b>${esc(REASON[r] || r)}</b>` : ""}</div>
             <div class="chips">${chips}</div></div>`;
         } else {
@@ -429,7 +508,17 @@
         this._slider("led_delay", "mdi:timer-sand", "Atténuation de la LED", "après ce délai"),
         this._slider("install_set", "mdi:home-lightning-bolt", "Courant d'installation", "réglage électricien — prudence"),
       ].join("");
-      return `<div class="sec">Fonctions</div><div class="tgrid">${t || `<div class="muted">Aucun réglage disponible.</div>`}</div>
+      // courant de charge souhaité (pilotage HOLM Lektrico) : ici plutôt que dans l'onglet Charge, à l'abri des touchers involontaires
+      let want = "";
+      if (this._e.charge_a && this._ok("charge_a")) {
+        const ca = this._optv("charge_a", this._n("charge_a")), mx = Number(this._s("charge_a")?.attributes?.max ?? 32);
+        const dlS = this._dlId() ? this._hass.states[this._dlId()] : null;
+        want = `<div class="sec">Courant de charge</div><div class="block lim pilot">
+          ${this._slider("charge_a", "mdi:current-ac", "Courant de charge", dlS && this._optv("dl", dlS.state) === "on" ? "souhaité — le délestage peut le réduire" : "souhaité")}
+          <div class="presets">${[6, 10, 16, 20, 25, 32].filter((a) => a <= mx).map((a) => `<button class="pre${ca === a ? " on" : ""}" data-preset="${a}" data-pk="charge_a"><b>${a} A</b><small>${this._kw(a)}</small></button>`).join("")}</div>
+          <div class="hint">Faites glisser la pastille, ou touchez une valeur.</div></div>`;
+      }
+      return `${want}<div class="sec">Fonctions</div><div class="tgrid">${t || `<div class="muted">Aucun réglage disponible.</div>`}</div>
         ${sl ? `<div class="sec">Limites et LED</div><div class="block">${sl}</div>` : ""}`;
     }
 
@@ -532,6 +621,24 @@
       /* illustration */
       .hero { position: relative; }
       .illu { width: 100%; height: auto; display: block; overflow: visible; }
+      .photo { display: none; position: relative; aspect-ratio: 2 / 1; border-radius: 16px; overflow: hidden; background: center / cover no-repeat rgba(255,255,255,.03);
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,.07); transition: box-shadow .6s; }
+      .hero.hasimg .illu { display: none; } .hero.hasimg .photo { display: block; }
+      .photo::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.55) 0%, rgba(0,0,0,0) 38%, rgba(0,0,0,0) 70%, rgba(0,0,0,.45) 100%); }
+      .pglow { position: absolute; inset: 0; border-radius: inherit; opacity: 0; box-shadow: inset 0 0 0 2px rgba(var(--m), .85), inset 0 0 28px rgba(var(--m), .55); transition: opacity .6s; }
+      .pbar { position: absolute; left: 0; right: 0; bottom: 0; height: 5px; opacity: 0; transition: opacity .6s;
+        background: repeating-linear-gradient(90deg, rgba(var(--m), .25) 0 14px, rgba(var(--m), 1) 14px 28px); background-size: 56px 100%; filter: drop-shadow(0 0 6px rgba(var(--m), .9)); }
+      ha-card[data-fx="plug"] .pbar { opacity: .45; }
+      ha-card[data-fx="error"] .pglow { opacity: 1; animation: blink 1s steps(2) infinite; }
+      ha-card.active .pglow { opacity: 1; animation: pglow 2.4s ease-in-out infinite; }
+      ha-card.active .pbar { opacity: 1; animation: pbar var(--flow) linear infinite; }
+      @keyframes pglow { 50% { opacity: .35; } }
+      @keyframes pbar { to { background-position: 56px 0; } }
+      ha-card[data-fx="idle"] .photo { filter: saturate(.75) brightness(.85); }
+      .hero.hasimg .big { left: 16px; top: 10px; }
+      .hero.hasimg .big b { text-shadow: 0 2px 10px rgba(0,0,0,.7), 0 0 18px rgba(var(--m), .6); }
+      .hero.hasimg .sub { margin-top: 8px; }
+      @media (prefers-reduced-motion: reduce) { .pglow, .pbar { animation: none !important; } }
       .floor { fill: rgba(0,0,0,.35); }
       .halo { opacity: .55; } .h0 { stop-color: rgba(var(--m), .55); }
       ha-card.active .halo { animation: halo 2.4s ease-in-out infinite; }
@@ -625,14 +732,24 @@
       .md ha-icon { --mdc-icon-size: 18px; }
       .md.on { background: rgba(var(--m), .22); border-color: rgba(var(--m), .6); color: var(--tx); box-shadow: 0 0 14px rgba(var(--m), .25); }
       .pst { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,.04); font-size: 12.5px; color: var(--tx2); margin-bottom: 8px; cursor: pointer; }
+      .hcd { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; background: rgba(120,140,255,.08); border: 1px solid rgba(120,140,255,.18); font-size: 12.5px; color: var(--tx2); margin: -2px 0 8px; cursor: pointer; flex-wrap: wrap; }
+      .hcd.on { background: rgba(62,207,142,.08); border-color: rgba(62,207,142,.22); }
+      .hcd ha-icon { --mdc-icon-size: 16px; color: #8f9bff; } .hcd.on ha-icon { color: #3ecf8e; }
+      .hcd span { flex: 1; min-width: 0; } .hcd b { color: var(--tx); font-variant-numeric: tabular-nums; } .hcd small { opacity: .75; }
+      .hcd em { font-style: normal; white-space: nowrap; font-variant-numeric: tabular-nums; font-size: 11.5px; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,.06); color: var(--tx); }
       .pst ha-icon { --mdc-icon-size: 16px; color: rgb(var(--m)); } .pst span { flex: 1; min-width: 0; } .pst b { color: var(--tx); white-space: nowrap; font-variant-numeric: tabular-nums; }
       @container (max-width: 430px) { .md span { font-size: 12px; } .md ha-icon { display: none; } }
       .pre { display: flex; flex-direction: column; align-items: center; padding: 6px 2px; border-radius: 10px; border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.04); color: var(--tx); cursor: pointer; font: inherit; }
+      .cwant { display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 10px; margin-bottom: 8px; border-radius: 10px; background: rgba(255,255,255,.04); font-size: 12.5px; color: var(--tx2); cursor: pointer; }
+      .cwant ha-icon { --mdc-icon-size: 16px; color: rgb(var(--m)); } .cwant span { flex: 1; } .cwant b { color: var(--tx); font-variant-numeric: tabular-nums; }
+      .cwant .go { color: var(--tx2); opacity: .7; }
+      .hint { font-size: 11px; color: var(--tx2); margin-top: 6px; opacity: .8; }
       .pre b { font-size: 12.5px; } .pre small { font-size: 9.5px; color: var(--tx2); }
       .pre.on { background: rgba(var(--m), .22); border-color: rgba(var(--m), .6); }
       .track { position: absolute; left: 0; right: 0; top: 50%; height: 8px; transform: translateY(-50%); border-radius: 4px; background: rgba(255,255,255,.08); }
       .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; background: linear-gradient(90deg, rgba(var(--m), .5), rgb(var(--m))); box-shadow: 0 0 10px rgba(var(--m), .45); }
-      input[type=range] { position: absolute; inset: 0; width: 100%; margin: 0; background: transparent; -webkit-appearance: none; appearance: none; cursor: pointer; }
+      input[type=range] { position: absolute; inset: 0; width: 100%; margin: 0; background: transparent; -webkit-appearance: none; appearance: none; cursor: pointer; pointer-events: none; }
+      .slider { touch-action: pan-y; cursor: grab; }
       input[type=range]::-webkit-slider-runnable-track { background: transparent; height: 100%; }
       input[type=range]::-moz-range-track { background: transparent; }
       input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: 2px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 4px rgba(var(--m), .35), 0 2px 6px rgba(0,0,0,.5); }
@@ -701,6 +818,12 @@
           { name: "entity", required: true, selector: { entity: { domain: "sensor" } } },
           { name: "name", selector: { text: {} } },
           { name: "delestage_entity", selector: { entity: { domain: ["automation", "input_boolean", "switch"] } } },
+          { name: "hc_entity", selector: { entity: { domain: "binary_sensor" } } },
+          { type: "expandable", title: "Photo (à la place de l'illustration)", icon: "mdi:image", flatten: true, schema: [
+            { name: "image_media", selector: { media: { accept: ["image/*"] } } },
+            { name: "image", selector: { text: {} } },
+            { name: "image_fit", selector: { select: { mode: "dropdown", options: [{ value: "cover", label: "Remplir le cadre" }, { value: "contain", label: "Image entière" }] } } },
+          ] },
           { type: "grid", name: "", schema: [
             { name: "default_tab", selector: { select: { mode: "dropdown", options: [{ value: "charge", label: "Charge" }, { value: "settings", label: "Réglages" }, { value: "stats", label: "Statistiques" }, { value: "diag", label: "Diagnostic" }] } } },
             { name: "car_color", selector: { text: {} } },
@@ -710,11 +833,13 @@
             { name: "show_diagnostic", selector: { boolean: {} } },
           ] },
         ];
-        const L = { entity: "Entité « État » de la borne", name: "Nom affiché", delestage_entity: "Délestage (si non intégré : automatisation)",
-          default_tab: "Onglet affiché par défaut", car_color: "Couleur de la voiture (ex. #4a5d70)", show_settings: "Onglet Réglages", show_diagnostic: "Onglet Diagnostic" };
+        const L = { entity: "Entité « État » de la borne", name: "Nom affiché", delestage_entity: "Délestage (si non intégré : automatisation)", hc_entity: "Heures creuses pour le décompte (HOLM HP/HC, détectées automatiquement)",
+          default_tab: "Onglet affiché par défaut", image_media: "Photo (médiathèque : vous pouvez y téléverser une image)", image: "… ou adresse d'une image (ex. /local/borne.jpg)", image_fit: "Cadrage de la photo", car_color: "Couleur de la voiture (ex. #4a5d70)", show_settings: "Onglet Réglages", show_diagnostic: "Onglet Diagnostic" };
         f.computeLabel = (s) => L[s.name] || s.name;
         f.addEventListener("value-changed", (ev) => {
-          ev.stopPropagation(); this._config = ev.detail.value; this._self = true;
+          ev.stopPropagation(); this._config = { ...ev.detail.value }; this._self = true;
+          if (this._config.image_media && !this._config.image_media.media_content_id) delete this._config.image_media;
+          for (const k of ["image", "image_fit", "hc_entity"]) if (!this._config[k]) delete this._config[k];
           this.dispatchEvent(new CustomEvent("config-changed", { detail: { config: this._config }, bubbles: true, composed: true }));
           setTimeout(() => (this._self = false), 0);
         });

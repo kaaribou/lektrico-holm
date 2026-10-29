@@ -84,12 +84,15 @@ name: Borne du garage
   - mesures (courant, tension, énergie, durée, température, puissance maximale) ;
   - limite de charge en A et en kW, raison de la limite, limites autorisée, utilisateur, puissance et installation ;
   - boutons Démarrer, Arrêter, Pause, Reprendre, Dérogation, et Redémarrer avec confirmation.
-- **Pilotage** : modes Heures creuses / Maintenant / Arrêt, courant de charge au curseur ou par boutons rapides (6 à 32 A, avec leur équivalent en kW), état du pilotage et limite appliquée.
-- **Réglages** : tous les interrupteurs de la borne et les curseurs limite utilisateur, puissance maximale, courant minimal du véhicule et LED.
+- **Pilotage** : modes Heures creuses / Maintenant / Arrêt, état du pilotage et limite appliquée, rappel du courant de charge souhaité (un toucher mène à l'onglet Réglages).
+- **Décompte des heures creuses** : en mode Heures creuses, « Heures creuses dans 4 h 16 (à 23h28) » et le tarif en cours, ou « Heures creuses jusqu'à 05h28 » pendant les heures creuses. Avec [HOLM HP/HC](https://github.com/kaaribou/holm-tarif), c'est automatique ; sans, rien ne change.
+- **Réglages** : le courant de charge souhaité (6 à 32 A, avec raccourcis et équivalent en kW), tous les interrupteurs de la borne et les curseurs limite utilisateur, puissance maximale, courant minimal du véhicule et LED.
+- **Votre photo** à la place de l'illustration (médiathèque ou adresse d'image, cadrage remplir ou image entière) : contour lumineux et barre animée en charge, barre fixe quand le véhicule est branché, contour qui clignote en erreur.
+- **Protégée des gestes involontaires** : les curseurs ne bougent qu'en saisissant la pastille et en la faisant glisser ; un toucher sur la piste ou un défilement de la page ne change rien.
 - **Statistiques** : énergie totale, sessions, temps de charge, dernière session, moyenne par session.
 - **Diagnostic** : contrôles de défauts, signal Wi-Fi, santé de la liaison et courants internes.
 
-Options : `name`, `delestage_entity`, `default_tab` (`charge`, `settings`, `stats`, `diag`), `show_settings`, `show_diagnostic`, `car_color` (couleur de la voiture, ex. `#4a5d70`), `phases` (`1` ou `3`, pour l'équivalent en kW), `voltage` (tension nominale, 230 par défaut). L'éditeur visuel est disponible.
+Options : `name`, `delestage_entity`, `hc_entity` (heures creuses pour le décompte, trouvées automatiquement), `image_media` / `image` (photo), `image_fit` (`cover` ou `contain`), `default_tab` (`charge`, `settings`, `stats`, `diag`), `show_settings`, `show_diagnostic`, `car_color` (couleur de la voiture, ex. `#4a5d70`), `phases` (`1` ou `3`, pour l'équivalent en kW), `voltage` (tension nominale, 230 par défaut). L'éditeur visuel est disponible.
 
 La carte fonctionne aussi avec l'intégration Lektrico officielle : les entités sont retrouvées à partir de l'appareil de l'entité « État ».
 
@@ -102,7 +105,7 @@ HOLM Lektrico peut **piloter lui-même la borne**, sans aucune automatisation : 
 | Réglage | Rôle |
 |---|---|
 | **Activer le pilotage** | Crée le mode de charge, l'interrupteur Délestage, le courant de charge et le capteur Pilotage. |
-| **Entité « heures creuses »** | Une entité qui indique les heures creuses : capteur de tarif, `binary_sensor`, `input_boolean`… |
+| **Entité « heures creuses »** | Une entité qui indique les heures creuses : capteur de tarif, `binary_sensor`, `input_boolean`… Recommandé : `binary_sensor.heures_creuses` de [HOLM HP/HC](https://github.com/kaaribou/holm-tarif) (valeur `on`), qui donne aussi à la carte le décompte jusqu'aux prochaines heures creuses. |
 | **Valeur(s) signifiant « heures creuses »** | Par exemple `on`, `HC` ou le prix du kWh en heures creuses (`0.1589`) ; les nombres sont comparés comme des nombres. |
 | **Puissance consommée au compteur** | Facultatif, pour le délestage : Linky/TIC, Ecojoko, Shelly EM… en W. |
 | **Puissance maximale au compteur** | Abonnement moins une marge : 12 kVA → 11 500 W, 9 kVA → 8 500 W, 6 kVA → 5 500 W. |
@@ -122,7 +125,7 @@ La limite écrite dans la borne est toujours `min(courant de charge selon le mod
 
 > 💡 Désactivez le **programme de charge** propre à la borne (interrupteur « Programme de charge ») : il se battrait avec le mode Heures creuses.
 
-La carte HOLM Borne affiche alors les trois modes, le courant de charge avec ses raccourcis (6 à 32 A, avec leur équivalent en kW) et l'état du pilotage ; son bouton Délestage commande l'interrupteur intégré.
+La carte HOLM Borne affiche alors les trois modes, l'état du pilotage et, en mode Heures creuses, le décompte jusqu'aux prochaines heures creuses ; le courant de charge (6 à 32 A, avec raccourcis) se règle dans son onglet Réglages, et son bouton Délestage commande l'interrupteur intégré.
 
 **Vous utilisiez les automatisations de délestage de la version 1.0 ?** Activez le pilotage puis désactivez-les : elles écriraient sur la même limite.
 

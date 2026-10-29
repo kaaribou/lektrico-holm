@@ -199,4 +199,4 @@ class PilotSensor(LektricoEntity, SensorEntity):
         st = self._pilot.status
         return {"mode": st.get("mode"), "heures_creuses": st.get("hc"), "cible": st.get("target"),
                 "plafond_delestage": st.get("cap"), "limite": st.get("applied"), "delestage": st.get("delestage"),
-                "ecritures": self._pilot.writes}
+                "ecritures": self._pilot.writes, "entite_heures_creuses": self._pilot.hc_entity}
