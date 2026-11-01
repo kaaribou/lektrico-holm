@@ -1,0 +1,369 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Adicionar um carregador Lektrico",
+        "description": "Configuração manual por endereço IP: o HOLM Lektrico não usa a deteção automática e consulta o carregador com moderação (no máximo 2 pedidos a cada 30 s).",
+        "data": {
+          "host": "Endereço IP do carregador",
+          "name": "Nome do dispositivo",
+          "prefix": "Prefixo das entidades"
+        },
+        "data_description": {
+          "prefix": "As entidades terão nomes como sensor.<prefix>_etat."
+        }
+      },
+      "reconfigure": {
+        "title": "Alterar o endereço do carregador",
+        "data": {
+          "host": "Endereço IP do carregador"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Não é possível contactar o carregador neste endereço."
+    },
+    "abort": {
+      "already_configured": "Este carregador já está configurado.",
+      "reconfigure_successful": "Endereço atualizado.",
+      "wrong_device": "Este endereço pertence a outro carregador."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opções",
+        "menu_options": {
+          "general": "Consulta do carregador",
+          "pilot": "Controlo da carga (horas de vazio, corte de carga)"
+        }
+      },
+      "general": {
+        "title": "Consulta",
+        "data": {
+          "scan_interval": "Intervalo de consulta"
+        }
+      },
+      "pilot": {
+        "title": "Controlo da carga",
+        "description": "O HOLM Lektrico define ele próprio o limite dinâmico do carregador: carga nas horas de vazio (ou agora, ou parado) e corte de carga para nunca ultrapassar a potência contratada. Substitui as automatizações de corte de carga.",
+        "data": {
+          "pilot": "Ativar o controlo da carga",
+          "hc_entity": "Entidade de horas de vazio",
+          "hc_values": "Valor(es) que indicam vazio",
+          "meter_entity": "Potência da rede no contador (corte de carga)",
+          "max_power": "Potência máxima no contador",
+          "max_current": "Corrente máxima do carregador"
+        },
+        "data_description": {
+          "hc_entity": "Por exemplo um sensor de tarifa, um binary_sensor ou um input_boolean que indique as horas de vazio.",
+          "hc_values": "Separados por vírgulas: on, HC, 0.1589… Os números são comparados como números.",
+          "meter_entity": "Opcional: sem sensor, não há corte de carga.",
+          "max_power": "Contrato menos uma margem: 12 kVA → 11 500 W, 9 kVA → 8 500 W, 6 kVA → 5 500 W."
+        }
+      }
+    },
+    "error": {
+      "hc_required": "Selecione a entidade que indica as horas de vazio."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "state": {
+        "name": "Estado",
+        "state": {
+          "available": "Disponível",
+          "charging": "A carregar",
+          "connected": "Ligado",
+          "error": "Erro",
+          "locked": "Bloqueado",
+          "need_auth": "A aguardar autenticação",
+          "paused": "Em pausa",
+          "paused_by_scheduler": "Em pausa pelo horário",
+          "updating_firmware": "A atualizar o firmware"
+        }
+      },
+      "power": {
+        "name": "Potência"
+      },
+      "energy": {
+        "name": "Energia"
+      },
+      "lifetime_energy": {
+        "name": "Energia total"
+      },
+      "charging_time": {
+        "name": "Tempo de carga"
+      },
+      "temperature": {
+        "name": "Temperatura"
+      },
+      "current": {
+        "name": "Corrente"
+      },
+      "voltage": {
+        "name": "Tensão"
+      },
+      "installation_current": {
+        "name": "Corrente da instalação"
+      },
+      "limit_reason": {
+        "name": "Motivo do limite",
+        "state": {
+          "no_limit": "Sem limite",
+          "installation_current": "Corrente da instalação",
+          "user_limit": "Limite do utilizador",
+          "dynamic_limit": "Limite dinâmico",
+          "schedule": "Horário",
+          "em_offline": "Contador de energia offline",
+          "em": "Contador de energia",
+          "ocpp": "OCPP",
+          "overtemperature": "Temperatura"
+        }
+      },
+      "iec_state": {
+        "name": "Estado IEC 61851"
+      },
+      "pwm_current": {
+        "name": "Corrente PWM"
+      },
+      "session_id": {
+        "name": "Número da sessão"
+      },
+      "heap_free": {
+        "name": "Memória livre"
+      },
+      "em_current": {
+        "name": "Corrente da gestão de energia"
+      },
+      "current_l1": {
+        "name": "Corrente L1"
+      },
+      "current_l2": {
+        "name": "Corrente L2"
+      },
+      "current_l3": {
+        "name": "Corrente L3"
+      },
+      "voltage_l1": {
+        "name": "Tensão L1"
+      },
+      "voltage_l2": {
+        "name": "Tensão L2"
+      },
+      "voltage_l3": {
+        "name": "Tensão L3"
+      },
+      "charging_current": {
+        "name": "Corrente de carga permitida"
+      },
+      "system_max_current": {
+        "name": "Corrente máxima do sistema"
+      },
+      "schedule_current": {
+        "name": "Corrente do horário"
+      },
+      "temperature_current": {
+        "name": "Corrente limitada pela temperatura"
+      },
+      "user_power_current": {
+        "name": "Corrente de potência do utilizador"
+      },
+      "ocpp_current": {
+        "name": "Corrente OCPP"
+      },
+      "wifi_rssi": {
+        "name": "Sinal Wi-Fi"
+      },
+      "wifi_ip": {
+        "name": "Endereço IP"
+      },
+      "total_sessions": {
+        "name": "Sessões totais"
+      },
+      "total_time": {
+        "name": "Tempo total de carga"
+      },
+      "last_session_energy": {
+        "name": "Energia da última sessão"
+      },
+      "requests": {
+        "name": "Pedidos enviados"
+      },
+      "failures": {
+        "name": "Falhas de comunicação"
+      },
+      "uptime": {
+        "name": "Tempo ativo"
+      },
+      "energy_index": {
+        "name": "Índice de energia"
+      },
+      "main_task_lwm": {
+        "name": "Pilha da tarefa principal"
+      },
+      "wifi_reconnects": {
+        "name": "Religações Wi-Fi"
+      },
+      "pilot": {
+        "name": "Controlo da carga"
+      }
+    },
+    "binary_sensor": {
+      "state_e_activated": {
+        "name": "Erro do veículo"
+      },
+      "overtemp": {
+        "name": "Limitação térmica"
+      },
+      "critical_temp": {
+        "name": "Sobreaquecimento"
+      },
+      "overcurrent": {
+        "name": "Sobrecorrente"
+      },
+      "meter_fault": {
+        "name": "Erro de medição"
+      },
+      "undervoltage": {
+        "name": "Subtensão"
+      },
+      "overvoltage": {
+        "name": "Sobretensão"
+      },
+      "rcd_error": {
+        "name": "Erro do diferencial"
+      },
+      "cp_diode_failure": {
+        "name": "Curto-circuito do díodo do veículo"
+      },
+      "contactor_failure": {
+        "name": "Contactos do relé soldados"
+      },
+      "voltage_error": {
+        "name": "Erro de tensão"
+      },
+      "rcd_test_error": {
+        "name": "Falha no teste do diferencial"
+      },
+      "state_f_activated": {
+        "name": "Erro de estado F"
+      },
+      "state_machine_error": {
+        "name": "Erro da máquina de estados"
+      },
+      "active_errors": {
+        "name": "Erros ativos"
+      },
+      "paused": {
+        "name": "Em pausa"
+      },
+      "vehicle_connected": {
+        "name": "Veículo ligado"
+      },
+      "charging": {
+        "name": "A carregar"
+      },
+      "wifi_connected": {
+        "name": "Wi-Fi ligado"
+      },
+      "schedule_override": {
+        "name": "Exceção ao horário ativa"
+      }
+    },
+    "switch": {
+      "authentication": {
+        "name": "Autenticação"
+      },
+      "lock": {
+        "name": "Bloqueio"
+      },
+      "charging_schedule": {
+        "name": "Horário de carga"
+      },
+      "auto_update": {
+        "name": "Atualização automática"
+      },
+      "energy_management": {
+        "name": "Gestão de energia"
+      },
+      "led_template": {
+        "name": "Cores LED personalizadas"
+      },
+      "precise_pwm": {
+        "name": "PWM preciso"
+      },
+      "buzzer": {
+        "name": "Besouro"
+      },
+      "reset_on_wifi_loss": {
+        "name": "Reiniciar ao perder o Wi-Fi"
+      },
+      "mqtt": {
+        "name": "MQTT"
+      },
+      "delestage": {
+        "name": "Corte de carga"
+      }
+    },
+    "number": {
+      "dynamic_limit": {
+        "name": "Limite dinâmico"
+      },
+      "user_limit": {
+        "name": "Limite do utilizador"
+      },
+      "user_power": {
+        "name": "Potência máxima"
+      },
+      "led_max_brightness": {
+        "name": "Brilho do LED"
+      },
+      "led_dimming_delay": {
+        "name": "Atraso de atenuação do LED"
+      },
+      "install_current": {
+        "name": "Corrente da instalação (definição)"
+      },
+      "car_minimum_current": {
+        "name": "Corrente mínima do veículo"
+      },
+      "charge_current": {
+        "name": "Corrente de carga"
+      }
+    },
+    "button": {
+      "charge_start": {
+        "name": "Iniciar a carga"
+      },
+      "charge_stop": {
+        "name": "Parar a carga"
+      },
+      "charge_pause": {
+        "name": "Pausa"
+      },
+      "charge_resume": {
+        "name": "Retomar a carga"
+      },
+      "charging_schedule_override": {
+        "name": "Exceção ao horário de carga"
+      },
+      "session_energy_reset": {
+        "name": "Repor a energia da sessão"
+      },
+      "reboot": {
+        "name": "Reiniciar"
+      }
+    },
+    "select": {
+      "charge_mode": {
+        "name": "Modo de carga",
+        "state": {
+          "heures_creuses": "Horas de vazio",
+          "maintenant": "Agora",
+          "arret": "Parar"
+        }
+      }
+    }
+  }
+}

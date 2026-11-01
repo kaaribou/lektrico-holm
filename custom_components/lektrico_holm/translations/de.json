@@ -1,0 +1,369 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Lektrico-Wallbox hinzufügen",
+        "description": "Manuelle Einrichtung per IP-Adresse: HOLM Lektrico nutzt keine automatische Erkennung und fragt die Wallbox sparsam ab (höchstens 2 Anfragen alle 30 s).",
+        "data": {
+          "host": "IP-Adresse der Wallbox",
+          "name": "Gerätename",
+          "prefix": "Entitätspräfix"
+        },
+        "data_description": {
+          "prefix": "Die Entitäten heißen dann z. B. sensor.<prefix>_etat."
+        }
+      },
+      "reconfigure": {
+        "title": "Adresse der Wallbox ändern",
+        "data": {
+          "host": "IP-Adresse der Wallbox"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Die Wallbox ist unter dieser Adresse nicht erreichbar."
+    },
+    "abort": {
+      "already_configured": "Diese Wallbox ist bereits eingerichtet.",
+      "reconfigure_successful": "Adresse aktualisiert.",
+      "wrong_device": "Diese Adresse gehört zu einer anderen Wallbox."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Optionen",
+        "menu_options": {
+          "general": "Abfrage der Wallbox",
+          "pilot": "Ladesteuerung (Niedertarif, Lastabwurf)"
+        }
+      },
+      "general": {
+        "title": "Abfrage",
+        "data": {
+          "scan_interval": "Abfrageintervall"
+        }
+      },
+      "pilot": {
+        "title": "Ladesteuerung",
+        "description": "HOLM Lektrico setzt das dynamische Limit der Wallbox selbst: Laden im Niedertarif (oder sofort, oder Stopp) und Lastabwurf, damit Sie Ihre Anschlussleistung nie überschreiten. Ersetzt die Lastabwurf-Automatisierungen.",
+        "data": {
+          "pilot": "Ladesteuerung aktivieren",
+          "hc_entity": "Niedertarif-Entität",
+          "hc_values": "Wert(e) für Niedertarif",
+          "meter_entity": "Netzleistung am Zähler (Lastabwurf)",
+          "max_power": "Maximale Leistung am Zähler",
+          "max_current": "Maximaler Strom der Wallbox"
+        },
+        "data_description": {
+          "hc_entity": "Zum Beispiel ein Tarifsensor, ein binary_sensor oder ein input_boolean für den Niedertarif.",
+          "hc_values": "Durch Komma getrennt: on, HC, 0.1589… Zahlen werden als Zahlen verglichen.",
+          "meter_entity": "Optional: ohne Sensor kein Lastabwurf.",
+          "max_power": "Vertrag minus Reserve: 12 kVA → 11.500 W, 9 kVA → 8.500 W, 6 kVA → 5.500 W."
+        }
+      }
+    },
+    "error": {
+      "hc_required": "Wählen Sie die Entität, die den Niedertarif angibt."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "state": {
+        "name": "Zustand",
+        "state": {
+          "available": "Verfügbar",
+          "charging": "Lädt",
+          "connected": "Verbunden",
+          "error": "Fehler",
+          "locked": "Gesperrt",
+          "need_auth": "Warten auf Authentifizierung",
+          "paused": "Pausiert",
+          "paused_by_scheduler": "Durch Zeitplan pausiert",
+          "updating_firmware": "Firmware wird aktualisiert"
+        }
+      },
+      "power": {
+        "name": "Leistung"
+      },
+      "energy": {
+        "name": "Energie"
+      },
+      "lifetime_energy": {
+        "name": "Gesamtenergie"
+      },
+      "charging_time": {
+        "name": "Ladezeit"
+      },
+      "temperature": {
+        "name": "Temperatur"
+      },
+      "current": {
+        "name": "Strom"
+      },
+      "voltage": {
+        "name": "Spannung"
+      },
+      "installation_current": {
+        "name": "Installationsstrom"
+      },
+      "limit_reason": {
+        "name": "Grund der Begrenzung",
+        "state": {
+          "no_limit": "Keine Begrenzung",
+          "installation_current": "Installationsstrom",
+          "user_limit": "Benutzerlimit",
+          "dynamic_limit": "Dynamisches Limit",
+          "schedule": "Zeitplan",
+          "em_offline": "Energiezähler offline",
+          "em": "Energiezähler",
+          "ocpp": "OCPP",
+          "overtemperature": "Temperatur"
+        }
+      },
+      "iec_state": {
+        "name": "IEC-61851-Zustand"
+      },
+      "pwm_current": {
+        "name": "PWM-Strom"
+      },
+      "session_id": {
+        "name": "Sitzungsnummer"
+      },
+      "heap_free": {
+        "name": "Freier Speicher"
+      },
+      "em_current": {
+        "name": "Strom des Energiemanagements"
+      },
+      "current_l1": {
+        "name": "Strom L1"
+      },
+      "current_l2": {
+        "name": "Strom L2"
+      },
+      "current_l3": {
+        "name": "Strom L3"
+      },
+      "voltage_l1": {
+        "name": "Spannung L1"
+      },
+      "voltage_l2": {
+        "name": "Spannung L2"
+      },
+      "voltage_l3": {
+        "name": "Spannung L3"
+      },
+      "charging_current": {
+        "name": "Erlaubter Ladestrom"
+      },
+      "system_max_current": {
+        "name": "Maximaler Systemstrom"
+      },
+      "schedule_current": {
+        "name": "Strom laut Zeitplan"
+      },
+      "temperature_current": {
+        "name": "Temperaturbegrenzter Strom"
+      },
+      "user_power_current": {
+        "name": "Strom laut Benutzerleistung"
+      },
+      "ocpp_current": {
+        "name": "OCPP-Strom"
+      },
+      "wifi_rssi": {
+        "name": "WLAN-Signal"
+      },
+      "wifi_ip": {
+        "name": "IP-Adresse"
+      },
+      "total_sessions": {
+        "name": "Sitzungen gesamt"
+      },
+      "total_time": {
+        "name": "Gesamte Ladezeit"
+      },
+      "last_session_energy": {
+        "name": "Energie der letzten Sitzung"
+      },
+      "requests": {
+        "name": "Gesendete Anfragen"
+      },
+      "failures": {
+        "name": "Kommunikationsfehler"
+      },
+      "uptime": {
+        "name": "Betriebszeit"
+      },
+      "energy_index": {
+        "name": "Energiezählerstand"
+      },
+      "main_task_lwm": {
+        "name": "Stack der Hauptaufgabe"
+      },
+      "wifi_reconnects": {
+        "name": "WLAN-Neuverbindungen"
+      },
+      "pilot": {
+        "name": "Ladesteuerung"
+      }
+    },
+    "binary_sensor": {
+      "state_e_activated": {
+        "name": "Fahrzeugfehler"
+      },
+      "overtemp": {
+        "name": "Thermische Begrenzung"
+      },
+      "critical_temp": {
+        "name": "Überhitzung"
+      },
+      "overcurrent": {
+        "name": "Überstrom"
+      },
+      "meter_fault": {
+        "name": "Messfehler"
+      },
+      "undervoltage": {
+        "name": "Unterspannung"
+      },
+      "overvoltage": {
+        "name": "Überspannung"
+      },
+      "rcd_error": {
+        "name": "FI-Fehler"
+      },
+      "cp_diode_failure": {
+        "name": "Kurzschluss der Fahrzeugdiode"
+      },
+      "contactor_failure": {
+        "name": "Verschweißte Relaiskontakte"
+      },
+      "voltage_error": {
+        "name": "Spannungsfehler"
+      },
+      "rcd_test_error": {
+        "name": "FI-Test fehlgeschlagen"
+      },
+      "state_f_activated": {
+        "name": "Fehler Zustand F"
+      },
+      "state_machine_error": {
+        "name": "Fehler der Zustandsmaschine"
+      },
+      "active_errors": {
+        "name": "Aktive Fehler"
+      },
+      "paused": {
+        "name": "Pausiert"
+      },
+      "vehicle_connected": {
+        "name": "Fahrzeug verbunden"
+      },
+      "charging": {
+        "name": "Lädt"
+      },
+      "wifi_connected": {
+        "name": "WLAN verbunden"
+      },
+      "schedule_override": {
+        "name": "Zeitplan-Übersteuerung aktiv"
+      }
+    },
+    "switch": {
+      "authentication": {
+        "name": "Authentifizierung"
+      },
+      "lock": {
+        "name": "Sperre"
+      },
+      "charging_schedule": {
+        "name": "Ladezeitplan"
+      },
+      "auto_update": {
+        "name": "Automatische Aktualisierung"
+      },
+      "energy_management": {
+        "name": "Energiemanagement"
+      },
+      "led_template": {
+        "name": "Eigene LED-Farben"
+      },
+      "precise_pwm": {
+        "name": "Präzises PWM"
+      },
+      "buzzer": {
+        "name": "Summer"
+      },
+      "reset_on_wifi_loss": {
+        "name": "Neustart bei WLAN-Verlust"
+      },
+      "mqtt": {
+        "name": "MQTT"
+      },
+      "delestage": {
+        "name": "Lastabwurf"
+      }
+    },
+    "number": {
+      "dynamic_limit": {
+        "name": "Dynamisches Limit"
+      },
+      "user_limit": {
+        "name": "Benutzerlimit"
+      },
+      "user_power": {
+        "name": "Maximale Leistung"
+      },
+      "led_max_brightness": {
+        "name": "LED-Helligkeit"
+      },
+      "led_dimming_delay": {
+        "name": "LED-Dimmverzögerung"
+      },
+      "install_current": {
+        "name": "Installationsstrom (Einstellung)"
+      },
+      "car_minimum_current": {
+        "name": "Minimaler Fahrzeugstrom"
+      },
+      "charge_current": {
+        "name": "Ladestrom"
+      }
+    },
+    "button": {
+      "charge_start": {
+        "name": "Laden starten"
+      },
+      "charge_stop": {
+        "name": "Laden stoppen"
+      },
+      "charge_pause": {
+        "name": "Pause"
+      },
+      "charge_resume": {
+        "name": "Laden fortsetzen"
+      },
+      "charging_schedule_override": {
+        "name": "Ladezeitplan übersteuern"
+      },
+      "session_energy_reset": {
+        "name": "Sitzungsenergie zurücksetzen"
+      },
+      "reboot": {
+        "name": "Neu starten"
+      }
+    },
+    "select": {
+      "charge_mode": {
+        "name": "Lademodus",
+        "state": {
+          "heures_creuses": "Niedertarif",
+          "maintenant": "Sofort",
+          "arret": "Stopp"
+        }
+      }
+    }
+  }
+}

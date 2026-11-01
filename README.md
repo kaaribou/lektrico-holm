@@ -4,6 +4,8 @@
 ![Version](https://img.shields.io/github/v/release/kaaribou/lektrico-holm)
 ![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2025.8%2B-03a9f4)
 
+🇫🇷 Français · [🇬🇧 English](README.en.md)
+
 **Votre borne Lektrico (1P7K, 3P22K) dans Home Assistant, en local, sans la surcharger, avec sa carte, la charge en heures creuses et le délestage intégrés.**
 
 HOLM Lektrico remplace l'intégration Lektrico officielle. Elle parle à la borne par son **API locale** (JSON-RPC du micrologiciel) mais l'interroge **avec parcimonie**. Sur certaines bornes, l'interrogation intensive de l'intégration officielle (3 à 4 requêtes toutes les 10 secondes, connexions maintenues ouvertes, détection automatique) finit par bloquer la pile réseau de la borne. Elle disparaît alors du Wi-Fi jusqu'à une coupure de courant.
@@ -22,6 +24,12 @@ HOLM Lektrico remplace l'intégration Lektrico officielle. Elle parle à la born
 | Charge et pilotage | Réglages | Diagnostic |
 |---|---|---|
 | ![Onglet Charge](docs/images/carte-charge.png) | ![Onglet Réglages](docs/images/carte-reglages.png) | ![Onglet Diagnostic](docs/images/carte-diagnostic.png) |
+
+
+### 🆕 Nouveautés de la 1.3.0
+
+- 🌍 **8 langues** : l'intégration (configuration, options, entités, actions) est traduite en français, anglais, allemand, espagnol, italien, néerlandais, portugais et polonais, selon la langue de Home Assistant. La carte **HOLM Borne** aussi, éditeur compris ; son option `language` permet d'imposer une langue.
+- 🇬🇧 README en anglais.
 
 ---
 
@@ -92,7 +100,7 @@ name: Borne du garage
 - **Statistiques** : énergie totale, sessions, temps de charge, dernière session, moyenne par session.
 - **Diagnostic** : contrôles de défauts, signal Wi-Fi, santé de la liaison et courants internes.
 
-Options : `name`, `delestage_entity`, `hc_entity` (heures creuses pour le décompte, trouvées automatiquement), `image_media` / `image` (photo), `image_fit` (`cover` ou `contain`), `default_tab` (`charge`, `settings`, `stats`, `diag`), `show_settings`, `show_diagnostic`, `car_color` (couleur de la voiture, ex. `#4a5d70`), `phases` (`1` ou `3`, pour l'équivalent en kW), `voltage` (tension nominale, 230 par défaut). L'éditeur visuel est disponible.
+Options : `language` (langue de la carte : `fr`, `en`, `de`, `es`, `it`, `nl`, `pt`, `pl` ; par défaut celle du profil), `name`, `delestage_entity`, `hc_entity` (heures creuses pour le décompte, trouvées automatiquement), `image_media` / `image` (photo), `image_fit` (`cover` ou `contain`), `default_tab` (`charge`, `settings`, `stats`, `diag`), `show_settings`, `show_diagnostic`, `car_color` (couleur de la voiture, ex. `#4a5d70`), `phases` (`1` ou `3`, pour l'équivalent en kW), `voltage` (tension nominale, 230 par défaut). L'éditeur visuel est disponible.
 
 La carte fonctionne aussi avec l'intégration Lektrico officielle : les entités sont retrouvées à partir de l'appareil de l'entité « État ».
 

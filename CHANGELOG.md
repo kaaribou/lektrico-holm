@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.0
+- **8 langues** : traductions allemand, espagnol, italien, néerlandais, portugais et polonais ajoutées (configuration, options, entités, actions), en plus du français et de l'anglais. Carte HOLM Borne traduite elle aussi (éditeur compris), avec une nouvelle option `language` ; elle suit sinon la langue du profil Home Assistant (anglais si la langue n'est pas traduite).
+- README en anglais (`README.en.md`).
+
 ## 1.2.0
 
 - **Carte HOLM Borne 2.6 — décompte des heures creuses** (#1) : en mode Heures creuses, la carte affiche « Heures creuses dans 4 h 16 (à 23h28) » et le tarif en cours, ou « Heures creuses jusqu'à 05h28 » pendant les heures creuses. L'entité vient de HOLM HP/HC (`binary_sensor.heures_creuses`), détectée automatiquement : celle choisie dans le pilotage si elle convient, sinon la première qui expose `prochaine_bascule`, ou l'option `hc_entity` de la carte. Sans HOLM HP/HC, rien ne change.

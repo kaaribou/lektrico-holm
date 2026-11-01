@@ -1,4 +1,4 @@
-/* holm-borne-card — HOLM Cards — licence MIT — v2.6.0 */
+/* holm-borne-card — HOLM Cards — licence MIT — v2.7.0 */
 /* HOLM Borne — carte de borne de recharge (HOLM Lektrico, intégration Lektrico officielle et compatibles)
  * - Illustration animée borne → câble → voiture selon l'état, ou votre photo (avec animation de charge).
  * - Onglets : Charge (mesures, limite, actions) · Réglages (interrupteurs et curseurs) ·
@@ -8,7 +8,226 @@
  * Les entités sont détectées depuis l'appareil de l'entité « État » (clé de traduction, sinon suffixe).
  */
 (() => {
-  const VERSION = "2.6.0";
+  // ---- HOLM i18n : textes écrits en français, traduits à l'affichage (en, de, es, it, nl, pt, pl) ----
+  // Langue : option `language` de la carte, sinon celle du profil Home Assistant ; anglais si la langue n'est pas traduite.
+  const HOLM_LANGS = ["en", "de", "es", "it", "nl", "pt", "pl"];
+  const LANG_NAMES = { fr: "Français", en: "English", de: "Deutsch", es: "Español", it: "Italiano", nl: "Nederlands", pt: "Português", pl: "Polski" };
+  const LOCALES = { fr: "fr-FR", en: "en-GB", de: "de-DE", es: "es-ES", it: "it-IT", nl: "nl-NL", pt: "pt-PT", pl: "pl-PL" };
+  const I18N = {
+    "Automatique (profil)": ["Automatic (profile)", "Automatisch (Profil)", "Automático (perfil)", "Automatica (profilo)", "Automatisch (profiel)", "Automático (perfil)", "Automatycznie (profil)"],
+    "Langue": ["Language", "Sprache", "Idioma", "Lingua", "Taal", "Idioma", "Język"],
+    "Titre": ["Title", "Titel", "Título", "Titolo", "Titel", "Título", "Tytuł"],
+    "Titre (optionnel)": ["Title (optional)", "Titel (optional)", "Título (opcional)", "Titolo (facoltativo)", "Titel (optioneel)", "Título (opcional)", "Tytuł (opcjonalnie)"],
+    "Nom": ["Name", "Name", "Nombre", "Nome", "Naam", "Nome", "Nazwa"],
+    "Nom affiché": ["Display name", "Anzeigename", "Nombre mostrado", "Nome visualizzato", "Weergavenaam", "Nome apresentado", "Wyświetlana nazwa"],
+    "Icône": ["Icon", "Symbol", "Icono", "Icona", "Pictogram", "Ícone", "Ikona"],
+    "Couleur": ["Colour", "Farbe", "Color", "Colore", "Kleur", "Cor", "Kolor"],
+    "Couleurs": ["Colours", "Farben", "Colores", "Colori", "Kleuren", "Cores", "Kolory"],
+    "Entité": ["Entity", "Entität", "Entidad", "Entità", "Entiteit", "Entidade", "Encja"],
+    "Entités": ["Entities", "Entitäten", "Entidades", "Entità", "Entiteiten", "Entidades", "Encje"],
+    "Chargement…": ["Loading…", "Wird geladen…", "Cargando…", "Caricamento…", "Laden…", "A carregar…", "Ładowanie…"],
+    "Erreur": ["Error", "Fehler", "Error", "Errore", "Fout", "Erro", "Błąd"],
+    "Fermer": ["Close", "Schließen", "Cerrar", "Chiudi", "Sluiten", "Fechar", "Zamknij"],
+    "Annuler": ["Cancel", "Abbrechen", "Cancelar", "Annulla", "Annuleren", "Cancelar", "Anuluj"],
+    "Enregistrer": ["Save", "Speichern", "Guardar", "Salva", "Opslaan", "Guardar", "Zapisz"],
+    "Supprimer": ["Delete", "Löschen", "Eliminar", "Elimina", "Verwijderen", "Eliminar", "Usuń"],
+    "Ajouter": ["Add", "Hinzufügen", "Añadir", "Aggiungi", "Toevoegen", "Adicionar", "Dodaj"],
+    "Monter": ["Move up", "Nach oben", "Subir", "Sposta su", "Omhoog", "Mover para cima", "W górę"],
+    "Descendre": ["Move down", "Nach unten", "Bajar", "Sposta giù", "Omlaag", "Mover para baixo", "W dół"],
+    "Afficher le cadre de la carte": ["Show the card frame", "Kartenrahmen anzeigen", "Mostrar el marco de la tarjeta", "Mostra la cornice della scheda", "Kaartkader tonen", "Mostrar a moldura do cartão", "Pokaż ramkę karty"],
+    "Indisponible": ["Unavailable", "Nicht verfügbar", "No disponible", "Non disponibile", "Niet beschikbaar", "Indisponível", "Niedostępna"],
+    "Aujourd'hui": ["Today", "Heute", "Hoy", "Oggi", "Vandaag", "Hoje", "Dziś"],
+    "Hier": ["Yesterday", "Gestern", "Ayer", "Ieri", "Gisteren", "Ontem", "Wczoraj"],
+    "Demain": ["Tomorrow", "Morgen", "Mañana", "Domani", "Morgen", "Amanhã", "Jutro"],
+    "Batterie": ["Battery", "Batterie", "Batería", "Batteria", "Batterij", "Bateria", "Bateria"],
+    "Aucune donnée sur cette période.": ["No data for this period.", "Keine Daten für diesen Zeitraum.", "No hay datos en este periodo.", "Nessun dato per questo periodo.", "Geen gegevens voor deze periode.", "Sem dados neste período.", "Brak danych w tym okresie."],
+    "à l'instant": ["just now", "gerade eben", "ahora mismo", "proprio ora", "zojuist", "agora mesmo", "przed chwilą"],
+    "il y a {n} min": ["{n} min ago", "vor {n} Min.", "hace {n} min", "{n} min fa", "{n} min geleden", "há {n} min", "{n} min temu"],
+    "il y a {n} h": ["{n} h ago", "vor {n} Std.", "hace {n} h", "{n} h fa", "{n} u geleden", "há {n} h", "{n} godz. temu"],
+    "il y a {n} j": ["{n} d ago", "vor {n} T.", "hace {n} d", "{n} g fa", "{n} d geleden", "há {n} d", "{n} dni temu"],
+    "Erreur EV": ["EV error", "Fahrzeugfehler", "Error del vehículo", "Errore veicolo", "Voertuigfout", "Erro do veículo", "Błąd pojazdu"],
+    "Limitation thermique": ["Thermal limiting", "Thermische Begrenzung", "Limitación térmica", "Limitazione termica", "Thermische begrenzing", "Limitação térmica", "Ograniczenie termiczne"],
+    "Surchauffe": ["Overheating", "Überhitzung", "Sobrecalentamiento", "Surriscaldamento", "Oververhitting", "Sobreaquecimento", "Przegrzanie"],
+    "Surintensité": ["Overcurrent", "Überstrom", "Sobrecorriente", "Sovracorrente", "Overstroom", "Sobrecorrente", "Przetężenie"],
+    "Erreur de comptage": ["Metering error", "Messfehler", "Error de medición", "Errore di misura", "Meetfout", "Erro de medição", "Błąd pomiaru"],
+    "Sous-tension": ["Undervoltage", "Unterspannung", "Subtensión", "Sottotensione", "Onderspanning", "Subtensão", "Podnapięcie"],
+    "Surtension": ["Overvoltage", "Überspannung", "Sobretensión", "Sovratensione", "Overspanning", "Sobretensão", "Przepięcie"],
+    "Différentiel (RCD)": ["Residual current (RCD)", "FI-Schutzschalter (RCD)", "Diferencial (RCD)", "Differenziale (RCD)", "Aardlek (RCD)", "Diferencial (RCD)", "Różnicówka (RCD)"],
+    "Test du différentiel": ["RCD test", "FI-Test", "Prueba del diferencial", "Test del differenziale", "Aardlektest", "Teste do diferencial", "Test różnicówki"],
+    "Diode EV": ["EV diode", "Fahrzeugdiode", "Diodo del vehículo", "Diodo veicolo", "Voertuigdiode", "Díodo do veículo", "Dioda pojazdu"],
+    "Relais soudés": ["Welded relay", "Verschweißtes Relais", "Relé soldado", "Relè saldato", "Gelast relais", "Relé soldado", "Zgrzany przekaźnik"],
+    "Erreur de tension": ["Voltage error", "Spannungsfehler", "Error de tensión", "Errore di tensione", "Spanningsfout", "Erro de tensão", "Błąd napięcia"],
+    "Erreur état F": ["State F error", "Fehler Zustand F", "Error de estado F", "Errore stato F", "Fout status F", "Erro de estado F", "Błąd stanu F"],
+    "Libre": ["Free", "Frei", "Libre", "Libera", "Vrij", "Livre", "Wolna"],
+    "Prête, aucun véhicule branché": ["Ready, no vehicle plugged in", "Bereit, kein Fahrzeug angeschlossen", "Lista, ningún vehículo enchufado", "Pronta, nessun veicolo collegato", "Klaar, geen voertuig aangesloten", "Pronto, nenhum veículo ligado", "Gotowa, brak podłączonego pojazdu"],
+    "Véhicule branché": ["Vehicle plugged in", "Fahrzeug angeschlossen", "Vehículo enchufado", "Veicolo collegato", "Voertuig aangesloten", "Veículo ligado", "Pojazd podłączony"],
+    "Branché, en attente de charge": ["Plugged in, waiting to charge", "Angeschlossen, wartet auf Laden", "Enchufado, esperando la carga", "Collegato, in attesa di ricarica", "Aangesloten, wacht op laden", "Ligado, à espera de carga", "Podłączony, czeka na ładowanie"],
+    "En charge": ["Charging", "Lädt", "Cargando", "In ricarica", "Laden", "A carregar", "Ładowanie"],
+    "En pause": ["Paused", "Pausiert", "En pausa", "In pausa", "Gepauzeerd", "Em pausa", "Wstrzymana"],
+    "Charge suspendue": ["Charging suspended", "Laden unterbrochen", "Carga suspendida", "Ricarica sospesa", "Laden onderbroken", "Carga suspensa", "Ładowanie wstrzymane"],
+    "En pause (programme)": ["Paused (schedule)", "Pausiert (Zeitplan)", "En pausa (horario)", "In pausa (programma)", "Gepauzeerd (schema)", "Em pausa (horário)", "Wstrzymana (harmonogram)"],
+    "Attend le créneau programmé": ["Waiting for the scheduled slot", "Wartet auf das geplante Zeitfenster", "Espera el tramo programado", "Attende la fascia programmata", "Wacht op het geplande tijdvak", "Aguarda o intervalo programado", "Czeka na zaplanowany przedział"],
+    "Authentification": ["Authentication", "Authentifizierung", "Autenticación", "Autenticazione", "Authenticatie", "Autenticação", "Uwierzytelnianie"],
+    "Badge ou validation requise": ["Badge or confirmation required", "Ausweis oder Bestätigung erforderlich", "Tarjeta o validación necesaria", "Badge o conferma richiesti", "Pas of bevestiging vereist", "Cartão ou validação necessária", "Wymagana karta lub potwierdzenie"],
+    "Verrouillée": ["Locked", "Gesperrt", "Bloqueado", "Bloccata", "Vergrendeld", "Bloqueado", "Zablokowana"],
+    "Aucune charge possible": ["No charging possible", "Kein Laden möglich", "Carga imposible", "Nessuna ricarica possibile", "Laden niet mogelijk", "Nenhuma carga possível", "Ładowanie niemożliwe"],
+    "Voir le diagnostic": ["See diagnostics", "Siehe Diagnose", "Ver el diagnóstico", "Vedi la diagnostica", "Zie diagnose", "Ver o diagnóstico", "Zobacz diagnostykę"],
+    "Mise à jour": ["Updating", "Aktualisierung", "Actualizando", "Aggiornamento", "Bijwerken", "Atualização", "Aktualizacja"],
+    "Mise à jour du micrologiciel": ["Firmware update", "Firmware-Aktualisierung", "Actualización del firmware", "Aggiornamento del firmware", "Firmware-update", "Atualização do firmware", "Aktualizacja oprogramowania"],
+    "Aucune limite": ["No limit", "Keine Begrenzung", "Sin límite", "Nessun limite", "Geen limiet", "Sem limite", "Brak limitu"],
+    "Courant de l'installation": ["Installation current", "Installationsstrom", "Corriente de la instalación", "Corrente dell'impianto", "Installatiestroom", "Corrente da instalação", "Prąd instalacji"],
+    "Limite utilisateur": ["User limit", "Benutzerlimit", "Límite del usuario", "Limite utente", "Gebruikerslimiet", "Limite do utilizador", "Limit użytkownika"],
+    "Limite dynamique": ["Dynamic limit", "Dynamisches Limit", "Límite dinámico", "Limite dinamico", "Dynamische limiet", "Limite dinâmico", "Limit dynamiczny"],
+    "Programme de charge": ["Charging schedule", "Ladezeitplan", "Horario de carga", "Programma di ricarica", "Laadschema", "Horário de carga", "Harmonogram ładowania"],
+    "Compteur hors ligne": ["Meter offline", "Zähler offline", "Contador sin conexión", "Contatore offline", "Meter offline", "Contador offline", "Licznik offline"],
+    "Compteur d'énergie": ["Energy meter", "Energiezähler", "Contador de energía", "Contatore di energia", "Energiemeter", "Contador de energia", "Licznik energii"],
+    "Température": ["Temperature", "Temperatur", "Temperatura", "Temperatura", "Temperatuur", "Temperatura", "Temperatura"],
+    "Bascule de phases": ["Phase switching", "Phasenumschaltung", "Cambio de fases", "Commutazione delle fasi", "Faseomschakeling", "Comutação de fases", "Przełączanie faz"],
+    "Charge monophasée désactivée": ["Single-phase charging off", "Einphasiges Laden deaktiviert", "Carga monofásica desactivada", "Ricarica monofase disattivata", "Eenfasig laden uit", "Carga monofásica desativada", "Ładowanie jednofazowe wyłączone"],
+    "Charge": ["Charge", "Laden", "Carga", "Ricarica", "Laden", "Carga", "Ładowanie"],
+    "Réglages": ["Settings", "Einstellungen", "Ajustes", "Impostazioni", "Instellingen", "Definições", "Ustawienia"],
+    "Statistiques": ["Statistics", "Statistik", "Estadísticas", "Statistiche", "Statistieken", "Estatísticas", "Statystyki"],
+    "Diagnostic": ["Diagnostics", "Diagnose", "Diagnóstico", "Diagnostica", "Diagnose", "Diagnóstico", "Diagnostyka"],
+    "{n} j": ["{n} d", "{n} T", "{n} d", "{n} g", "{n} d", "{n} d", "{n} d"],
+    "demain ": ["tomorrow ", "morgen ", "mañana ", "domani ", "morgen ", "amanhã ", "jutro "],
+    "Heures creuses jusqu'à <b>{t}</b>": ["Off-peak until <b>{t}</b>", "Niedertarif bis <b>{t}</b>", "Horas valle hasta <b>{t}</b>", "Fuori punta fino a <b>{t}</b>", "Daluren tot <b>{t}</b>", "Horas de vazio até <b>{t}</b>", "Poza szczytem do <b>{t}</b>"],
+    "Heures creuses dans <b>{d}</b> <small>(à {t})</small>": ["Off-peak in <b>{d}</b> <small>(at {t})</small>", "Niedertarif in <b>{d}</b> <small>(um {t})</small>", "Horas valle en <b>{d}</b> <small>(a las {t})</small>", "Fuori punta tra <b>{d}</b> <small>(alle {t})</small>", "Daluren over <b>{d}</b> <small>(om {t})</small>", "Horas de vazio dentro de <b>{d}</b> <small>(às {t})</small>", "Poza szczytem za <b>{d}</b> <small>(o {t})</small>"],
+    "HC": ["Off-peak", "NT", "Valle", "F3", "Dal", "Vazio", "Poza szczytem"],
+    "HP": ["Peak", "HT", "Punta", "F1", "Piek", "Cheias", "Szczyt"],
+    "Délestage": ["Load shedding", "Lastabwurf", "Deslastre", "Distacco carichi", "Lastafschakeling", "Corte de carga", "Odciążenie"],
+    "Borne indisponible": ["Charger unavailable", "Wallbox nicht verfügbar", "Cargador no disponible", "Wallbox non disponibile", "Laadpaal niet beschikbaar", "Carregador indisponível", "Ładowarka niedostępna"],
+    "jamais": ["never", "nie", "nunca", "mai", "nooit", "nunca", "nigdy"],
+    "0 A · pause": ["0 A · pause", "0 A · Pause", "0 A · pausa", "0 A · pausa", "0 A · pauze", "0 A · pausa", "0 A · pauza"],
+    "Borne de recharge": ["Charger", "Wallbox", "Cargador", "Wallbox", "Laadpaal", "Carregador", "Ładowarka"],
+    "Délestage actif": ["Load shedding on", "Lastabwurf aktiv", "Deslastre activo", "Distacco carichi attivo", "Lastafschakeling aan", "Corte de carga ativo", "Odciążenie włączone"],
+    "Délestage coupé": ["Load shedding off", "Lastabwurf aus", "Deslastre desactivado", "Distacco carichi spento", "Lastafschakeling uit", "Corte de carga desligado", "Odciążenie wyłączone"],
+    "{e} kWh rechargés · {t}": ["{e} kWh charged · {t}", "{e} kWh geladen · {t}", "{e} kWh cargados · {t}", "{e} kWh ricaricati · {t}", "{e} kWh geladen · {t}", "{e} kWh carregados · {t}", "{e} kWh naładowano · {t}"],
+    "Courant": ["Current", "Strom", "Corriente", "Corrente", "Stroom", "Corrente", "Prąd"],
+    "Tension": ["Voltage", "Spannung", "Tensión", "Tensione", "Spanning", "Tensão", "Napięcie"],
+    "Session": ["Session", "Sitzung", "Sesión", "Sessione", "Sessie", "Sessão", "Sesja"],
+    "Durée": ["Duration", "Dauer", "Duración", "Durata", "Duur", "Duração", "Czas"],
+    "Puiss. max": ["Max power", "Max. Leist.", "Pot. máx.", "Pot. max", "Max. verm.", "Pot. máx.", "Moc maks."],
+    "Autorisé": ["Allowed", "Erlaubt", "Permitido", "Consentita", "Toegestaan", "Permitida", "Dozwolony"],
+    "Utilisateur": ["User", "Benutzer", "Usuario", "Utente", "Gebruiker", "Utilizador", "Użytkownik"],
+    "Puissance max": ["Max power", "Max. Leistung", "Potencia máx.", "Potenza max", "Max. vermogen", "Potência máx.", "Moc maks."],
+    "Installation": ["Installation", "Installation", "Instalación", "Impianto", "Installatie", "Instalação", "Instalacja"],
+    "Heures creuses": ["Off-peak hours", "Niedertarif", "Horas valle", "Fuori punta", "Daluren", "Horas de vazio", "Poza szczytem"],
+    "Maintenant": ["Now", "Sofort", "Ahora", "Subito", "Nu", "Agora", "Teraz"],
+    "Arrêt": ["Stop", "Stopp", "Parada", "Stop", "Stop", "Parar", "Stop"],
+    "pause": ["pause", "Pause", "pausa", "pausa", "pauze", "pausa", "pauza"],
+    "Modifier dans l'onglet Réglages": ["Change in the Settings tab", "Im Reiter Einstellungen ändern", "Cambiar en la pestaña Ajustes", "Modifica nella scheda Impostazioni", "Wijzigen in het tabblad Instellingen", "Alterar no separador Definições", "Zmień w karcie Ustawienia"],
+    "Courant de charge souhaité": ["Desired charging current", "Gewünschter Ladestrom", "Corriente de carga deseada", "Corrente di ricarica desiderata", "Gewenste laadstroom", "Corrente de carga pretendida", "Żądany prąd ładowania"],
+    "Raison de la limite : <b>{r}</b>": ["Limit reason: <b>{r}</b>", "Grund der Begrenzung: <b>{r}</b>", "Motivo del límite: <b>{r}</b>", "Motivo del limite: <b>{r}</b>", "Reden van de limiet: <b>{r}</b>", "Motivo do limite: <b>{r}</b>", "Przyczyna limitu: <b>{r}</b>"],
+    "Limite de charge": ["Charging limit", "Ladelimit", "Límite de carga", "Limite di ricarica", "Laadlimiet", "Limite de carga", "Limit ładowania"],
+    "pilotée par le délestage — coupez-le pour régler à la main": ["driven by load shedding — turn it off to set it by hand", "durch Lastabwurf gesteuert — zum manuellen Einstellen ausschalten", "controlada por el deslastre — desactívalo para ajustarla a mano", "gestita dal distacco carichi — spegnilo per regolarla a mano", "gestuurd door lastafschakeling — zet die uit om handmatig in te stellen", "controlada pelo corte de carga — desligue-o para ajustar à mão", "sterowany przez odciążenie — wyłącz je, aby ustawić ręcznie"],
+    "réglage manuel": ["manual setting", "manuelle Einstellung", "ajuste manual", "regolazione manuale", "handmatige instelling", "ajuste manual", "ustawienie ręczne"],
+    "0 · pause": ["0 · pause", "0 · Pause", "0 · pausa", "0 · pausa", "0 · pauze", "0 · pausa", "0 · pauza"],
+    "Arrêter": ["Stop", "Stoppen", "Detener", "Ferma", "Stoppen", "Parar", "Zatrzymaj"],
+    "Démarrer": ["Start", "Starten", "Iniciar", "Avvia", "Starten", "Iniciar", "Start"],
+    "Reprendre": ["Resume", "Fortsetzen", "Reanudar", "Riprendi", "Hervatten", "Retomar", "Wznów"],
+    "Pause": ["Pause", "Pause", "Pausa", "Pausa", "Pauze", "Pausa", "Pauza"],
+    "Dérogation": ["Override", "Übersteuerung", "Excepción", "Deroga", "Overschrijven", "Exceção", "Pominięcie"],
+    "Confirmer ?": ["Confirm?", "Bestätigen?", "¿Confirmar?", "Confermare?", "Bevestigen?", "Confirmar?", "Potwierdzić?"],
+    "Redémarrer": ["Restart", "Neu starten", "Reiniciar", "Riavvia", "Herstarten", "Reiniciar", "Uruchom ponownie"],
+    "Badge ou appli requis": ["Badge or app required", "Ausweis oder App erforderlich", "Tarjeta o app necesaria", "Badge o app richiesti", "Pas of app vereist", "Cartão ou app necessário", "Wymagana karta lub aplikacja"],
+    "Démarrage automatique": ["Automatic start", "Automatischer Start", "Inicio automático", "Avvio automatico", "Automatisch starten", "Arranque automático", "Automatyczny start"],
+    "Verrou": ["Lock", "Sperre", "Bloqueo", "Blocco", "Vergrendeling", "Bloqueio", "Blokada"],
+    "Charge impossible": ["Charging impossible", "Laden nicht möglich", "Carga imposible", "Ricarica impossibile", "Laden onmogelijk", "Carga impossível", "Ładowanie niemożliwe"],
+    "Déverrouillée": ["Unlocked", "Entsperrt", "Desbloqueado", "Sbloccata", "Ontgrendeld", "Desbloqueado", "Odblokowana"],
+    "Activé": ["On", "An", "Activado", "Attivo", "Aan", "Ativado", "Włączony"],
+    "Désactivé": ["Off", "Aus", "Desactivado", "Disattivato", "Uit", "Desativado", "Wyłączony"],
+    "Activée": ["On", "An", "Activada", "Attiva", "Aan", "Ativada", "Włączona"],
+    "Désactivée": ["Off", "Aus", "Desactivada", "Disattivata", "Uit", "Desativada", "Wyłączona"],
+    "Activées": ["On", "An", "Activadas", "Attivi", "Aan", "Ativadas", "Włączone"],
+    "Désactivées": ["Off", "Aus", "Desactivadas", "Disattivati", "Uit", "Desativadas", "Wyłączone"],
+    "Buzzer": ["Buzzer", "Summer", "Zumbador", "Cicalino", "Zoemer", "Besouro", "Brzęczyk"],
+    "Sons activés": ["Sounds on", "Töne an", "Sonidos activados", "Suoni attivi", "Geluid aan", "Sons ativados", "Dźwięki włączone"],
+    "Silencieux": ["Silent", "Stumm", "Silencioso", "Silenzioso", "Stil", "Silencioso", "Cichy"],
+    "Mise à jour auto.": ["Auto update", "Auto-Update", "Actualización auto.", "Aggiornamento auto", "Auto-update", "Atualização auto.", "Aktualizacja auto."],
+    "Manuelle": ["Manual", "Manuell", "Manual", "Manuale", "Handmatig", "Manual", "Ręczna"],
+    "Redémarrage si Wi-Fi perdu": ["Restart if Wi-Fi lost", "Neustart bei WLAN-Verlust", "Reiniciar si se pierde el Wi-Fi", "Riavvio se si perde il Wi-Fi", "Herstarten bij wifi-verlies", "Reiniciar se perder o Wi-Fi", "Restart po utracie Wi-Fi"],
+    "Gestion d'énergie": ["Energy management", "Energiemanagement", "Gestión de energía", "Gestione dell'energia", "Energiebeheer", "Gestão de energia", "Zarządzanie energią"],
+    "Couleurs LED perso.": ["Custom LED colours", "Eigene LED-Farben", "Colores LED pers.", "Colori LED pers.", "Eigen ledkleuren", "Cores LED pers.", "Własne kolory LED"],
+    "PWM précis": ["Precise PWM", "Präzises PWM", "PWM preciso", "PWM preciso", "Nauwkeurige PWM", "PWM preciso", "Precyzyjny PWM"],
+    "courant maximal choisi": ["chosen maximum current", "gewählter Maximalstrom", "corriente máxima elegida", "corrente massima scelta", "gekozen maximale stroom", "corrente máxima escolhida", "wybrany prąd maksymalny"],
+    "Puissance maximale": ["Maximum power", "Maximale Leistung", "Potencia máxima", "Potenza massima", "Maximaal vermogen", "Potência máxima", "Moc maksymalna"],
+    "la borne ne dépasse pas cette puissance": ["the charger doesn't exceed this power", "die Wallbox überschreitet diese Leistung nicht", "el cargador no supera esta potencia", "la wallbox non supera questa potenza", "de laadpaal komt niet boven dit vermogen", "o carregador não ultrapassa esta potência", "ładowarka nie przekracza tej mocy"],
+    "Courant minimal du véhicule": ["Vehicle minimum current", "Minimaler Fahrzeugstrom", "Corriente mínima del vehículo", "Corrente minima del veicolo", "Minimale voertuigstroom", "Corrente mínima do veículo", "Minimalny prąd pojazdu"],
+    "Luminosité de la LED": ["LED brightness", "LED-Helligkeit", "Brillo del LED", "Luminosità del LED", "Ledhelderheid", "Brilho do LED", "Jasność LED"],
+    "Atténuation de la LED": ["LED dimming", "LED-Dimmung", "Atenuación del LED", "Attenuazione del LED", "Leddimmen", "Atenuação do LED", "Przyciemnianie LED"],
+    "après ce délai": ["after this delay", "nach dieser Zeit", "tras este tiempo", "dopo questo intervallo", "na deze tijd", "após este tempo", "po tym czasie"],
+    "Courant d'installation": ["Installation current", "Installationsstrom", "Corriente de instalación", "Corrente d'impianto", "Installatiestroom", "Corrente de instalação", "Prąd instalacji"],
+    "réglage électricien — prudence": ["electrician setting — careful", "Einstellung für Elektriker — Vorsicht", "ajuste de electricista — precaución", "impostazione da elettricista — attenzione", "instelling voor elektricien — voorzichtig", "definição de eletricista — cuidado", "ustawienie elektryka — ostrożnie"],
+    "Courant de charge": ["Charging current", "Ladestrom", "Corriente de carga", "Corrente di ricarica", "Laadstroom", "Corrente de carga", "Prąd ładowania"],
+    "souhaité — le délestage peut le réduire": ["desired — load shedding may lower it", "gewünscht — der Lastabwurf kann ihn senken", "deseada — el deslastre puede reducirla", "desiderata — il distacco carichi può ridurla", "gewenst — lastafschakeling kan hem verlagen", "pretendida — o corte de carga pode reduzi-la", "żądany — odciążenie może go obniżyć"],
+    "souhaité": ["desired", "gewünscht", "deseada", "desiderata", "gewenst", "pretendida", "żądany"],
+    "Faites glisser la pastille, ou touchez une valeur.": ["Drag the knob, or tap a value.", "Ziehen Sie den Regler oder tippen Sie auf einen Wert.", "Arrastra el control o toca un valor.", "Trascina il cursore o tocca un valore.", "Sleep de knop of tik op een waarde.", "Arraste o cursor ou toque num valor.", "Przeciągnij suwak lub dotknij wartości."],
+    "Fonctions": ["Functions", "Funktionen", "Funciones", "Funzioni", "Functies", "Funções", "Funkcje"],
+    "Aucun réglage disponible.": ["No setting available.", "Keine Einstellung verfügbar.", "Ningún ajuste disponible.", "Nessuna impostazione disponibile.", "Geen instelling beschikbaar.", "Nenhuma definição disponível.", "Brak dostępnych ustawień."],
+    "Limites et LED": ["Limits and LED", "Limits und LED", "Límites y LED", "Limiti e LED", "Limieten en led", "Limites e LED", "Limity i LED"],
+    "Énergie totale": ["Total energy", "Gesamtenergie", "Energía total", "Energia totale", "Totale energie", "Energia total", "Energia całkowita"],
+    "Sessions": ["Sessions", "Sitzungen", "Sesiones", "Sessioni", "Sessies", "Sessões", "Sesje"],
+    "Temps de charge": ["Charging time", "Ladezeit", "Tiempo de carga", "Tempo di ricarica", "Laadtijd", "Tempo de carga", "Czas ładowania"],
+    "Dernière session": ["Last session", "Letzte Sitzung", "Última sesión", "Ultima sessione", "Laatste sessie", "Última sessão", "Ostatnia sesja"],
+    "Moyenne par session": ["Average per session", "Durchschnitt pro Sitzung", "Media por sesión", "Media per sessione", "Gemiddeld per sessie", "Média por sessão", "Średnio na sesję"],
+    "Session en cours": ["Current session", "Aktuelle Sitzung", "Sesión en curso", "Sessione in corso", "Huidige sessie", "Sessão em curso", "Bieżąca sesja"],
+    "Durée de la session": ["Session duration", "Sitzungsdauer", "Duración de la sesión", "Durata della sessione", "Sessieduur", "Duração da sessão", "Czas sesji"],
+    "Numéro de session": ["Session number", "Sitzungsnummer", "Número de sesión", "Numero di sessione", "Sessienummer", "Número da sessão", "Numer sesji"],
+    "Index d'énergie": ["Energy index", "Energiezählerstand", "Índice de energía", "Indice energia", "Energie-index", "Índice de energia", "Indeks energii"],
+    "faible": ["weak", "schwach", "débil", "debole", "zwak", "fraco", "słaby"],
+    "moyen": ["fair", "mittel", "medio", "medio", "redelijk", "médio", "średni"],
+    "bon": ["good", "gut", "bueno", "buono", "goed", "bom", "dobry"],
+    "excellent": ["excellent", "ausgezeichnet", "excelente", "eccellente", "uitstekend", "excelente", "doskonały"],
+    "{n} défaut : {l}": ["{n} fault: {l}", "{n} Fehler: {l}", "{n} fallo: {l}", "{n} guasto: {l}", "{n} storing: {l}", "{n} falha: {l}", "{n} usterka: {l}"],
+    "{n} défauts : {l}": ["{n} faults: {l}", "{n} Fehler: {l}", "{n} fallos: {l}", "{n} guasti: {l}", "{n} storingen: {l}", "{n} falhas: {l}", "{n} usterek: {l}"],
+    "{n} contrôles OK": ["{n} checks OK", "{n} Prüfungen OK", "{n} comprobaciones OK", "{n} controlli OK", "{n} controles OK", "{n} verificações OK", "{n} kontroli OK"],
+    "Signal Wi-Fi": ["Wi-Fi signal", "WLAN-Signal", "Señal Wi-Fi", "Segnale Wi-Fi", "Wifi-signaal", "Sinal Wi-Fi", "Sygnał Wi-Fi"],
+    "Reconnexions Wi-Fi": ["Wi-Fi reconnections", "WLAN-Neuverbindungen", "Reconexiones Wi-Fi", "Riconnessioni Wi-Fi", "Wifi-herverbindingen", "Religações Wi-Fi", "Ponowne połączenia Wi-Fi"],
+    "Adresse IP": ["IP address", "IP-Adresse", "Dirección IP", "Indirizzo IP", "IP-adres", "Endereço IP", "Adres IP"],
+    "Temps de fonctionnement": ["Uptime", "Betriebszeit", "Tiempo activo", "Tempo di attività", "Uptime", "Tempo ativo", "Czas pracy"],
+    "retombe à zéro si la borne redémarre": ["resets to zero if the charger restarts", "fällt auf null, wenn die Wallbox neu startet", "vuelve a cero si el cargador se reinicia", "torna a zero se la wallbox si riavvia", "valt terug naar nul als de laadpaal herstart", "volta a zero se o carregador reiniciar", "zeruje się po restarcie ładowarki"],
+    "Mémoire libre": ["Free memory", "Freier Speicher", "Memoria libre", "Memoria libera", "Vrij geheugen", "Memória livre", "Wolna pamięć"],
+    "Requêtes envoyées": ["Requests sent", "Gesendete Anfragen", "Peticiones enviadas", "Richieste inviate", "Verzonden verzoeken", "Pedidos enviados", "Wysłane zapytania"],
+    "depuis le démarrage de Home Assistant": ["since Home Assistant started", "seit dem Start von Home Assistant", "desde el inicio de Home Assistant", "dall'avvio di Home Assistant", "sinds de start van Home Assistant", "desde o arranque do Home Assistant", "od uruchomienia Home Assistant"],
+    "Échecs de communication": ["Communication failures", "Kommunikationsfehler", "Fallos de comunicación", "Errori di comunicazione", "Communicatiefouten", "Falhas de comunicação", "Błędy komunikacji"],
+    "État IEC 61851": ["IEC 61851 state", "IEC-61851-Zustand", "Estado IEC 61851", "Stato IEC 61851", "IEC 61851-status", "Estado IEC 61851", "Stan IEC 61851"],
+    "Courant PWM": ["PWM current", "PWM-Strom", "Corriente PWM", "Corrente PWM", "PWM-stroom", "Corrente PWM", "Prąd PWM"],
+    "Courant de charge autorisé": ["Allowed charging current", "Erlaubter Ladestrom", "Corriente de carga permitida", "Corrente di ricarica consentita", "Toegestane laadstroom", "Corrente de carga permitida", "Dozwolony prąd ładowania"],
+    "Courant maximal système": ["System maximum current", "Maximaler Systemstrom", "Corriente máxima del sistema", "Corrente massima di sistema", "Maximale systeemstroom", "Corrente máxima do sistema", "Maksymalny prąd systemu"],
+    "Courant du programme": ["Schedule current", "Strom laut Zeitplan", "Corriente del horario", "Corrente da programma", "Stroom volgens schema", "Corrente do horário", "Prąd harmonogramu"],
+    "Courant limité par la température": ["Temperature-limited current", "Temperaturbegrenzter Strom", "Corriente limitada por temperatura", "Corrente limitata dalla temperatura", "Door temperatuur beperkte stroom", "Corrente limitada pela temperatura", "Prąd ograniczony temperaturą"],
+    "Courant puissance utilisateur": ["User power current", "Strom laut Benutzerleistung", "Corriente de potencia del usuario", "Corrente di potenza utente", "Stroom gebruikersvermogen", "Corrente de potência do utilizador", "Prąd mocy użytkownika"],
+    "Liaison et santé": ["Link and health", "Verbindung und Zustand", "Enlace y estado", "Collegamento e stato", "Verbinding en status", "Ligação e estado", "Łączność i stan"],
+    "Courants et état technique": ["Currents and technical state", "Ströme und technischer Zustand", "Corrientes y estado técnico", "Correnti e stato tecnico", "Stromen en technische status", "Correntes e estado técnico", "Prądy i stan techniczny"],
+    "Photo (à la place de l'illustration)": ["Photo (instead of the illustration)", "Foto (statt der Illustration)", "Foto (en lugar de la ilustración)", "Foto (al posto dell'illustrazione)", "Foto (in plaats van de illustratie)", "Foto (em vez da ilustração)", "Zdjęcie (zamiast ilustracji)"],
+    "Remplir le cadre": ["Fill the frame", "Rahmen füllen", "Rellenar el marco", "Riempi il riquadro", "Kader vullen", "Preencher o quadro", "Wypełnij ramkę"],
+    "Image entière": ["Whole image", "Ganzes Bild", "Imagen completa", "Immagine intera", "Hele afbeelding", "Imagem inteira", "Cały obraz"],
+    "Entité « État » de la borne": ["Charger “State” entity", "Entität „Zustand“ der Wallbox", "Entidad «Estado» del cargador", "Entità «Stato» della wallbox", "Entiteit ‘Status’ van de laadpaal", "Entidade «Estado» do carregador", "Encja „Stan” ładowarki"],
+    "Délestage (si non intégré : automatisation)": ["Load shedding (if not built in: automation)", "Lastabwurf (falls nicht integriert: Automatisierung)", "Deslastre (si no está integrado: automatización)", "Distacco carichi (se non integrato: automazione)", "Lastafschakeling (indien niet ingebouwd: automatisering)", "Corte de carga (se não integrado: automatização)", "Odciążenie (jeśli nie wbudowane: automatyzacja)"],
+    "Heures creuses pour le décompte (HOLM HP/HC, détectées automatiquement)": ["Off-peak hours for the countdown (HOLM HP/HC, detected automatically)", "Niedertarif für den Countdown (HOLM HP/HC, automatisch erkannt)", "Horas valle para la cuenta atrás (HOLM HP/HC, detectadas automáticamente)", "Fuori punta per il conto alla rovescia (HOLM HP/HC, rilevato automaticamente)", "Daluren voor het aftellen (HOLM HP/HC, automatisch gevonden)", "Horas de vazio para a contagem (HOLM HP/HC, detetadas automaticamente)", "Poza szczytem do odliczania (HOLM HP/HC, wykrywane automatycznie)"],
+    "Onglet affiché par défaut": ["Tab shown by default", "Standardmäßig angezeigter Reiter", "Pestaña mostrada por defecto", "Scheda mostrata per impostazione predefinita", "Standaard getoond tabblad", "Separador mostrado por defeito", "Domyślna karta"],
+    "Photo (médiathèque : vous pouvez y téléverser une image)": ["Photo (media library: you can upload an image there)", "Foto (Medienbibliothek: Sie können dort ein Bild hochladen)", "Foto (mediateca: puedes subir una imagen)", "Foto (libreria multimediale: puoi caricarvi un'immagine)", "Foto (mediabibliotheek: je kunt er een afbeelding uploaden)", "Foto (mediateca: pode carregar lá uma imagem)", "Zdjęcie (biblioteka multimediów: możesz tam wgrać obraz)"],
+    "… ou adresse d'une image (ex. /local/borne.jpg)": ["… or an image address (e.g. /local/charger.jpg)", "… oder Bildadresse (z. B. /local/wallbox.jpg)", "… o dirección de una imagen (p. ej. /local/cargador.jpg)", "… o indirizzo di un'immagine (es. /local/wallbox.jpg)", "… of adres van een afbeelding (bv. /local/laadpaal.jpg)", "… ou endereço de uma imagem (ex. /local/carregador.jpg)", "… lub adres obrazu (np. /local/ladowarka.jpg)"],
+    "Cadrage de la photo": ["Photo framing", "Bildausschnitt", "Encuadre de la foto", "Inquadratura della foto", "Uitsnede van de foto", "Enquadramento da foto", "Kadrowanie zdjęcia"],
+    "Couleur de la voiture (ex. #4a5d70)": ["Car colour (e.g. #4a5d70)", "Autofarbe (z. B. #4a5d70)", "Color del coche (p. ej. #4a5d70)", "Colore dell'auto (es. #4a5d70)", "Kleur van de auto (bv. #4a5d70)", "Cor do carro (ex. #4a5d70)", "Kolor samochodu (np. #4a5d70)"],
+    "Onglet Réglages": ["Settings tab", "Reiter Einstellungen", "Pestaña Ajustes", "Scheda Impostazioni", "Tabblad Instellingen", "Separador Definições", "Karta Ustawienia"],
+    "Onglet Diagnostic": ["Diagnostics tab", "Reiter Diagnose", "Pestaña Diagnóstico", "Scheda Diagnostica", "Tabblad Diagnose", "Separador Diagnóstico", "Karta Diagnostyka"],
+    "Choisis l'entité « État » de la borne.": ["Choose the charger's “State” entity.", "Wählen Sie die Entität „Zustand“ der Wallbox.", "Elige la entidad «Estado» del cargador.", "Scegli l'entità «Stato» della wallbox.", "Kies de entiteit ‘Status’ van de laadpaal.", "Escolha a entidade «Estado» do carregador.", "Wybierz encję „Stan” ładowarki."],
+    "HOLM Borne": ["HOLM Charger", "HOLM Wallbox", "HOLM Cargador", "HOLM Wallbox", "HOLM Laadpaal", "HOLM Carregador", "HOLM Ładowarka"],
+    "Borne de recharge (HOLM Lektrico…) : illustration animée, mesures, limite, actions, réglages, statistiques, diagnostic et délestage.": ["EV charger (HOLM Lektrico…): animated illustration, measurements, limit, actions, settings, statistics, diagnostics and load shedding.", "Wallbox (HOLM Lektrico…): animierte Illustration, Messwerte, Limit, Aktionen, Einstellungen, Statistik, Diagnose und Lastabwurf.", "Cargador (HOLM Lektrico…): ilustración animada, medidas, límite, acciones, ajustes, estadísticas, diagnóstico y deslastre.", "Wallbox (HOLM Lektrico…): illustrazione animata, misure, limite, azioni, impostazioni, statistiche, diagnostica e distacco carichi.", "Laadpaal (HOLM Lektrico…): geanimeerde illustratie, metingen, limiet, acties, instellingen, statistieken, diagnose en lastafschakeling.", "Carregador (HOLM Lektrico…): ilustração animada, medições, limite, ações, definições, estatísticas, diagnóstico e corte de carga.", "Ładowarka (HOLM Lektrico…): animowana ilustracja, pomiary, limit, akcje, ustawienia, statystyki, diagnostyka i odciążenie."]
+  };
+  let LANG = "fr", NUMLOC = "fr-FR";
+  const langOf = (hass, c) => { const l = String((c && c.language) || (hass && ((hass.locale && hass.locale.language) || hass.language)) || navigator.language || "en").toLowerCase().split(/[-_]/)[0]; return l === "fr" || HOLM_LANGS.includes(l) ? l : "en"; };
+  const setLang = (hass, c) => { LANG = langOf(hass, c); const p = hass && hass.locale && hass.locale.language; NUMLOC = !(c && c.language) && p && p.toLowerCase().startsWith(LANG) ? p : LOCALES[LANG]; return LANG; };
+  const _ = (s, v) => { let o = LANG === "fr" ? s : ((I18N[s] && I18N[s][HOLM_LANGS.indexOf(LANG)]) || s); if (v) for (const k in v) o = o.split("{" + k + "}").join(v[k]); return o; };
+  // champ « Langue » pour les éditeurs visuels (ha-form)
+  const langField = () => ({ name: "language", selector: { select: { mode: "dropdown", options: [{ value: "", label: _("Automatique (profil)") }, ...Object.entries(LANG_NAMES).map(([value, label]) => ({ value, label }))] } } });
+  // traduit les titres de sections et les libellés d'options d'un schéma ha-form (écrits en français)
+  const locSchema = (sc) => (sc || []).map((x) => { const o = { ...x }; if (o.title) o.title = _(o.title); if (o.schema) o.schema = locSchema(o.schema);
+    if (o.selector && o.selector.select && o.name !== "language") o.selector = { ...o.selector, select: { ...o.selector.select, options: (o.selector.select.options || []).map((op) => (typeof op === "string" ? op : { ...op, label: _(op.label) })) } };
+    if (o.name === "language" && o.selector && o.selector.select) o.selector = { ...o.selector, select: { ...o.selector.select, options: o.selector.select.options.map((op) => (op.value ? op : { ...op, label: _("Automatique (profil)") })) } };
+    return o; });
+  const VERSION = "2.7.0";
   // clé -> [translation_key, suffixe d'entity_id, domaine]
   const MAP = {
     state: ["state", "etat", "sensor"], power: ["power", "puissance", "sensor"], current: ["current", "courant", "sensor"],
@@ -42,34 +261,37 @@
     pilot: ["pilot", "pilotage", "sensor"], charge_a: ["charge_current", "courant_de_charge", "number"],
   };
   const DIAG = [
-    ["state_e_activated", "erreur_ev", "Erreur EV", "mdi:car-off"], ["overtemp", "limitation_thermique", "Limitation thermique", "mdi:thermometer-alert"],
-    ["critical_temp", "surchauffe", "Surchauffe", "mdi:fire-alert"], ["overcurrent", "surintensite", "Surintensité", "mdi:current-ac"],
-    ["meter_fault", "erreur_de_comptage", "Erreur de comptage", "mdi:meter-electric-outline"], ["undervoltage", "sous_tension", "Sous-tension", "mdi:flash-triangle-outline"],
-    ["overvoltage", "surtension", "Surtension", "mdi:flash-alert"], ["rcd_error", "erreur_du_differentiel_rcd", "Différentiel (RCD)", "mdi:shield-alert-outline"],
-    ["rcd_test_error", "echec_du_test_differentiel", "Test du différentiel", "mdi:shield-sync-outline"], ["cp_diode_failure", "court_circuit_de_la_diode_ev", "Diode EV", "mdi:led-off"],
-    ["contactor_failure", "contacts_du_relais_soudes", "Relais soudés", "mdi:electric-switch"], ["voltage_error", "erreur_de_tension", "Erreur de tension", "mdi:sine-wave"],
-    ["state_f_activated", "erreur_etat_f", "Erreur état F", "mdi:alert-octagon-outline"],
+    ["state_e_activated", "erreur_ev", _("Erreur EV"), "mdi:car-off"], ["overtemp", "limitation_thermique", _("Limitation thermique"), "mdi:thermometer-alert"],
+    ["critical_temp", "surchauffe", _("Surchauffe"), "mdi:fire-alert"], ["overcurrent", "surintensite", _("Surintensité"), "mdi:current-ac"],
+    ["meter_fault", "erreur_de_comptage", _("Erreur de comptage"), "mdi:meter-electric-outline"], ["undervoltage", "sous_tension", _("Sous-tension"), "mdi:flash-triangle-outline"],
+    ["overvoltage", "surtension", _("Surtension"), "mdi:flash-alert"], ["rcd_error", "erreur_du_differentiel_rcd", _("Différentiel (RCD)"), "mdi:shield-alert-outline"],
+    ["rcd_test_error", "echec_du_test_differentiel", _("Test du différentiel"), "mdi:shield-sync-outline"], ["cp_diode_failure", "court_circuit_de_la_diode_ev", _("Diode EV"), "mdi:led-off"],
+    ["contactor_failure", "contacts_du_relais_soudes", _("Relais soudés"), "mdi:electric-switch"], ["voltage_error", "erreur_de_tension", _("Erreur de tension"), "mdi:sine-wave"],
+    ["state_f_activated", "erreur_etat_f", _("Erreur état F"), "mdi:alert-octagon-outline"],
   ];
-  const STATES = {
-    available: { l: "Libre", d: "Prête, aucun véhicule branché", rgb: "120,170,210", icon: "mdi:ev-station", fx: "idle" },
-    connected: { l: "Véhicule branché", d: "Branché, en attente de charge", rgb: "80,160,255", icon: "mdi:ev-plug-type2", fx: "plug" },
-    charging: { l: "En charge", d: "", rgb: "62,207,142", icon: "mdi:battery-charging-high", fx: "charge" },
-    paused: { l: "En pause", d: "Charge suspendue", rgb: "255,184,64", icon: "mdi:pause-circle-outline", fx: "plug" },
-    paused_by_scheduler: { l: "En pause (programme)", d: "Attend le créneau programmé", rgb: "255,184,64", icon: "mdi:calendar-clock", fx: "plug" },
-    need_auth: { l: "Authentification", d: "Badge ou validation requise", rgb: "176,132,255", icon: "mdi:card-account-details-outline", fx: "plug" },
-    locked: { l: "Verrouillée", d: "Aucune charge possible", rgb: "150,160,178", icon: "mdi:lock", fx: "idle" },
-    error: { l: "Erreur", d: "Voir le diagnostic", rgb: "255,90,95", icon: "mdi:alert-octagon", fx: "error" },
-    updating_firmware: { l: "Mise à jour", d: "Mise à jour du micrologiciel", rgb: "90,210,230", icon: "mdi:update", fx: "idle" },
+const _T = (o) => new Proxy(o, { get: (t, k) => { const v = t[k]; return typeof v === "string" ? _(v) : v && typeof v === "object" ? _T(v) : v; } });
+  const STATES_RAW = {
+    available: { l: _("Libre"), d: _("Prête, aucun véhicule branché"), rgb: "120,170,210", icon: "mdi:ev-station", fx: "idle" },
+    connected: { l: _("Véhicule branché"), d: _("Branché, en attente de charge"), rgb: "80,160,255", icon: "mdi:ev-plug-type2", fx: "plug" },
+    charging: { l: _("En charge"), d: "", rgb: "62,207,142", icon: "mdi:battery-charging-high", fx: "charge" },
+    paused: { l: _("En pause"), d: _("Charge suspendue"), rgb: "255,184,64", icon: "mdi:pause-circle-outline", fx: "plug" },
+    paused_by_scheduler: { l: _("En pause (programme)"), d: _("Attend le créneau programmé"), rgb: "255,184,64", icon: "mdi:calendar-clock", fx: "plug" },
+    need_auth: { l: _("Authentification"), d: _("Badge ou validation requise"), rgb: "176,132,255", icon: "mdi:card-account-details-outline", fx: "plug" },
+    locked: { l: _("Verrouillée"), d: _("Aucune charge possible"), rgb: "150,160,178", icon: "mdi:lock", fx: "idle" },
+    error: { l: _("Erreur"), d: _("Voir le diagnostic"), rgb: "255,90,95", icon: "mdi:alert-octagon", fx: "error" },
+    updating_firmware: { l: _("Mise à jour"), d: _("Mise à jour du micrologiciel"), rgb: "90,210,230", icon: "mdi:update", fx: "idle" },
   };
-  const REASON = {
-    no_limit: "Aucune limite", installation_current: "Courant de l'installation", user_limit: "Limite utilisateur", dynamic_limit: "Limite dynamique",
-    schedule: "Programme de charge", em_offline: "Compteur hors ligne", em: "Compteur d'énergie", ocpp: "OCPP", overtemperature: "Température",
-    switching_phases: "Bascule de phases", "1p_charging_disabled": "Charge monophasée désactivée",
+  const STATES = _T(STATES_RAW);
+  const REASON_RAW = {
+    no_limit: _("Aucune limite"), installation_current: _("Courant de l'installation"), user_limit: _("Limite utilisateur"), dynamic_limit: _("Limite dynamique"),
+    schedule: _("Programme de charge"), em_offline: _("Compteur hors ligne"), em: _("Compteur d'énergie"), ocpp: "OCPP", overtemperature: _("Température"),
+    switching_phases: _("Bascule de phases"), "1p_charging_disabled": _("Charge monophasée désactivée"),
   };
-  const TABS = [["charge", "mdi:ev-station", "Charge"], ["settings", "mdi:tune-variant", "Réglages"], ["stats", "mdi:chart-box-outline", "Statistiques"], ["diag", "mdi:stethoscope", "Diagnostic"]];
+  const REASON = _T(REASON_RAW);
+  const TABS = _T([["charge", "mdi:ev-station", _("Charge")], ["settings", "mdi:tune-variant", _("Réglages")], ["stats", "mdi:chart-box-outline", _("Statistiques")], ["diag", "mdi:stethoscope", _("Diagnostic")]]);
   const OPT_TTL = 12000;
   const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-  const fmtN = (v, d = 0) => Number(v).toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d });
+  const fmtN = (v, d = 0) => Number(v).toLocaleString(NUMLOC, { minimumFractionDigits: d, maximumFractionDigits: d });
   const num = (s) => (s && !["unknown", "unavailable", ""].includes(s.state) && !isNaN(parseFloat(s.state)) ? parseFloat(s.state) : null);
   const fmtDur = (sec) => {
     if (sec == null) return "–";
@@ -77,7 +299,7 @@
     const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60);
     return h ? `${h} h ${String(m).padStart(2, "0")}` : m ? `${m} min` : `${sec} s`;
   };
-  const fmtHours = (h) => (h == null ? "–" : h >= 48 ? `${fmtN(h / 24, 1)} j` : h >= 1 ? `${fmtN(h, 1)} h` : `${fmtN(h * 60)} min`);
+  const fmtHours = (h) => (h == null ? "–" : h >= 48 ? _("{n} j", { n: fmtN(h / 24, 1) }) : h >= 1 ? `${fmtN(h, 1)} h` : `${fmtN(h * 60)} min`);
 
   // ---- illustration ----
   const CABLE = "M96 92 C 120 128, 160 130, 190 106";
@@ -135,7 +357,7 @@
       return { type: "custom:holm-borne-card", entity: e || "" };
     }
     setConfig(config) {
-      if (!config || !config.entity) throw new Error("Choisis l'entité « État » de la borne.");
+      if (!config || !config.entity) throw new Error(_("Choisis l'entité « État » de la borne."));
       this._config = { show_diagnostic: true, show_settings: true, car_color: "#4a5d70", default_tab: "charge", ...config };
       this._e = null; this._imgKey = null; this._imgShown = null; this._opt = {}; this._confirm = null; this._tab = this._config.default_tab;
       if (!this.shadowRoot) this.attachShadow({ mode: "open" });
@@ -154,6 +376,7 @@
     set hass(hass) {
       this._hass = hass;
       if (!this._config) return;
+      { const _l = setLang(hass, this._config); if (this._lang && _l !== this._lang) this._built = false; this._lang = _l; }
       if (!this._e) this._detect();
       if (!this._built) this._build();
       this._resolveImg();
@@ -218,11 +441,11 @@
       const on = s.state === "on", next = a.prochaine_bascule ? new Date(a.prochaine_bascule) : null;
       if (!next || isNaN(next)) return "";
       const now = new Date(), min = Math.max(0, Math.round((next - now) / 60000));
-      const hm = next.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }).replace(":", "h");
-      const day = next.toDateString() === now.toDateString() ? "" : new Date(now.getTime() + 864e5).toDateString() === next.toDateString() ? "demain " : next.toLocaleDateString("fr-FR", { weekday: "long" }) + " ";
+      const hm = next.toLocaleTimeString(NUMLOC, { hour: "2-digit", minute: "2-digit" }).replace(":", "h");
+      const day = next.toDateString() === now.toDateString() ? "" : new Date(now.getTime() + 864e5).toDateString() === next.toDateString() ? _("demain ") : next.toLocaleDateString(NUMLOC, { weekday: "long" }) + " ";
       const dur = min >= 60 ? `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, "0")}` : `${min} min`;
-      const txt = on ? `Heures creuses jusqu'à <b>${day}${hm}</b>` : `Heures creuses dans <b>${dur}</b> <small>(à ${day}${hm})</small>`;
-      const t = Number(a.tarif), tarif = isFinite(t) && a.tarif != null ? `<em>${on ? "HC" : "HP"} · ${fmtN(t, 4)} €/kWh</em>` : "";
+      const txt = on ? _("Heures creuses jusqu'à <b>{t}</b>", { t: day + hm }) : _("Heures creuses dans <b>{d}</b> <small>(à {t})</small>", { d: dur, t: day + hm });
+      const t = Number(a.tarif), tarif = isFinite(t) && a.tarif != null ? `<em>${on ? _("HC") : _("HP")} · ${fmtN(t, 4)} €/kWh</em>` : "";
       return `<div class="hcd${on ? " on" : ""}" data-more="${esc(id)}"><ha-icon icon="${on ? "mdi:weather-night" : "mdi:timer-sand"}"></ha-icon><span>${txt}</span>${tarif}</div>`;
     }
 
@@ -235,13 +458,13 @@
           <div class="head">
             <div class="badge" data-more="state"><ha-icon id="bicon"></ha-icon></div>
             <div class="ttl" data-more="state"><div class="name" id="name"></div><div class="status"><span class="dot"></span><span id="status"></span></div></div>
-            <button class="dl" id="dl" title="Délestage"><ha-icon icon="mdi:transmission-tower-export"></ha-icon><span id="dltxt">Délestage</span></button>
+            <button class="dl" id="dl" title="${_("Délestage")}"><ha-icon icon="mdi:transmission-tower-export"></ha-icon><span id="dltxt">${_("Délestage")}</span></button>
           </div>
           <div class="hero" id="hero">${ILLU}<div class="photo" id="photo"><i class="pglow"></i><i class="pbar"></i></div><div class="big"><b id="pw">–</b><small>kW</small></div><div class="sub" id="sub"></div></div>
           <div class="tabs" id="tabs">${TABS.map(([k, i, l]) => `<button data-tab="${k}"><ha-icon icon="${i}"></ha-icon><span>${l}</span><i class="badge-dot" id="tb-${k}"></i></button>`).join("")}</div>
           <div class="pane" id="pane"></div>
         </div>
-        <div class="na" id="na">Borne indisponible</div>
+        <div class="na" id="na">${_("Borne indisponible")}</div>
       </ha-card>`;
       this.$ = (id) => root.getElementById(id);
       this._card = root.querySelector("ha-card");
@@ -341,8 +564,8 @@
     _fmtNum(k, v) {
       if (k === "user_power") return `${fmtN(v / 1000, 2)} kW<small class="kw">${fmtN(v / this._volt() / this._ph())} A</small>`;
       if (k === "led") return `${fmtN(v)} %`;
-      if (k === "led_delay") return v ? `${fmtN(v)} s` : "jamais";
-      if (k === "limit" && v === 0) return "0 A · pause";
+      if (k === "led_delay") return v ? `${fmtN(v)} s` : _("jamais");
+      if (k === "limit" && v === 0) return _("0 A · pause");
       return `${fmtN(v)} A<small class="kw">${this._kw(v)}</small>`;
     }
     // équivalent en kW d'un courant (tension mesurée, monophasé par défaut)
@@ -355,17 +578,18 @@
 
     // ---------- rendu ----------
     _render(force) {
+      setLang(this._hass, this._config);
       const h = this._hass, cfg = this._config, $ = this.$;
       const so = this._s("state"), card = this._card;
       const unav = !so || so.state === "unavailable" || so.state === "unknown";
       card.classList.toggle("unav", unav);
-      $("name").textContent = cfg.name || (so && so.attributes.friendly_name ? so.attributes.friendly_name.replace(/\s*(État|Etat|State)$/i, "") : "Borne de recharge");
+      $("name").textContent = cfg.name || (so && so.attributes.friendly_name ? so.attributes.friendly_name.replace(/\s*(État|Etat|State)$/i, "") : _("Borne de recharge"));
       card.style.setProperty("--car", cfg.car_color);
       const img = this._img || cfg.image || "";
       $("hero").classList.toggle("hasimg", !!img);
       if (img && this._imgShown !== img) { $("photo").style.backgroundImage = `url("${String(img).replace(/"/g, "%22")}")`; this._imgShown = img; }
       $("photo").style.backgroundSize = cfg.image_fit === "contain" ? "contain" : "cover";
-      if (unav) { $("status").textContent = "Indisponible"; return; }
+      if (unav) { $("status").textContent = _("Indisponible"); return; }
       const st = STATES[so.state] || { l: so.state, d: "", rgb: "150,160,178", icon: "mdi:ev-station", fx: "idle" };
       const pw = this._n("power"), en = this._n("energy"), tm = this._n("time");
       const charging = so.state === "charging";
@@ -379,11 +603,11 @@
       if (dlS) {
         const on = this._optv("dl", dlS.state) === "on";
         $("dl").classList.toggle("on", on);
-        $("dltxt").textContent = on ? "Délestage actif" : "Délestage coupé";
+        $("dltxt").textContent = on ? _("Délestage actif") : _("Délestage coupé");
         $("dl").querySelector("ha-icon").setAttribute("icon", on ? "mdi:transmission-tower-export" : "mdi:transmission-tower-off");
       }
       $("pw").textContent = pw != null ? fmtN(pw, pw < 10 ? 2 : 1) : "–";
-      $("sub").textContent = charging ? (en != null ? `${fmtN(en, 2)} kWh rechargés · ${fmtDur(tm)}` : "") : st.d;
+      $("sub").textContent = charging ? (en != null ? _("{e} kWh rechargés · {t}", { e: fmtN(en, 2), t: fmtDur(tm) }) : "") : st.d;
       card.style.setProperty("--flow", charging ? Math.max(0.6, 2.4 - (pw || 0) / 4) + "s" : "2s");
       // onglets
       const tabs = TABS.filter(([k]) => (k !== "settings" || cfg.show_settings) && (k !== "diag" || cfg.show_diagnostic));
@@ -427,12 +651,12 @@
       const charging = so.state === "charging";
       const upw = this._n("user_power");
       const stats = [
-        this._stat("current", "mdi:current-ac", "Courant", cur != null ? `${fmtN(cur, 1)} A` : "–", charging),
-        this._stat("voltage", "mdi:sine-wave", "Tension", volt != null ? `${fmtN(volt)} V` : "–"),
-        this._stat("energy", "mdi:battery-plus-variant", "Session", en != null ? `${fmtN(en, 2)} kWh` : "–", charging),
-        this._stat("time", "mdi:timer-outline", "Durée", fmtDur(tm), charging),
-        this._stat("temp", "mdi:thermometer", "Température", tp != null ? `${fmtN(Math.round(tp))} °C` : "–", tp != null && tp >= 60),
-        this._stat("user_power", "mdi:flash", "Puiss. max", upw != null ? `${fmtN(upw / 1000, 2)} kW` : "–"),
+        this._stat("current", "mdi:current-ac", _("Courant"), cur != null ? `${fmtN(cur, 1)} A` : "–", charging),
+        this._stat("voltage", "mdi:sine-wave", _("Tension"), volt != null ? `${fmtN(volt)} V` : "–"),
+        this._stat("energy", "mdi:battery-plus-variant", _("Session"), en != null ? `${fmtN(en, 2)} kWh` : "–", charging),
+        this._stat("time", "mdi:timer-outline", _("Durée"), fmtDur(tm), charging),
+        this._stat("temp", "mdi:thermometer", _("Température"), tp != null ? `${fmtN(Math.round(tp))} °C` : "–", tp != null && tp >= 60),
+        this._stat("user_power", "mdi:flash", _("Puiss. max"), upw != null ? `${fmtN(upw / 1000, 2)} kW` : "–"),
       ].join("");
       // limite
       let lim = "";
@@ -440,21 +664,21 @@
         const rs = this._s("reason"), r = rs ? rs.state : null;
         const dlS = this._dlId() ? this._hass.states[this._dlId()] : null;
         const chips = [
-          ["allowed", "Autorisé", this._n("allowed")], ["user_limit", "Utilisateur", this._n("user_limit")],
-          ["upow_cur", "Puissance max", this._n("upow_cur")], ["install", "Installation", this._n("install")],
+          ["allowed", _("Autorisé"), this._n("allowed")], ["user_limit", _("Utilisateur"), this._n("user_limit")],
+          ["upow_cur", _("Puissance max"), this._n("upow_cur")], ["install", _("Installation"), this._n("install")],
         ].filter(([, , v]) => v != null).map(([k, l, v]) => `<button class="chip" data-more="${k}"><small>${l}</small><b>${fmtN(v)} A</b><small class="kw">${this._kw(v)}</small></button>`).join("");
         if (this._e.mode && this._s("mode")) {
           const ms = this._s("mode"), mode = this._optv("mode", ms.state);
-          const MODES = [["heures_creuses", "mdi:weather-night", "Heures creuses"], ["maintenant", "mdi:flash", "Maintenant"], ["arret", "mdi:stop-circle-outline", "Arrêt"]];
+          const MODES = [["heures_creuses", "mdi:weather-night", _("Heures creuses")], ["maintenant", "mdi:flash", _("Maintenant")], ["arret", "mdi:stop-circle-outline", _("Arrêt")]];
           const ps = this._s("pilot"), applied = this._n("limit"), ca = this._optv("charge_a", this._n("charge_a"));
           const mx = Number(this._s("charge_a")?.attributes?.max ?? 32);
           const pre = [6, 10, 16, 20, 25, 32].filter((a) => a <= mx);
           lim = `<div class="block lim pilot${r && r !== "no_limit" ? " capped" : ""}">
             <div class="modes">${MODES.map(([k, ic, l]) => `<button class="md${mode === k ? " on" : ""}" data-mode="${k}"><ha-icon icon="${ic}"></ha-icon><span>${l}</span></button>`).join("")}</div>
-            <div class="pst" data-more="pilot"><ha-icon icon="mdi:robot-outline"></ha-icon><span>${ps ? esc(ps.state) : ""}</span>${applied != null ? `<b>${applied ? `${fmtN(applied)} A · ${this._kw(applied)}` : "pause"}</b>` : ""}</div>
+            <div class="pst" data-more="pilot"><ha-icon icon="mdi:robot-outline"></ha-icon><span>${ps ? esc(ps.state) : ""}</span>${applied != null ? `<b>${applied ? `${fmtN(applied)} A · ${this._kw(applied)}` : _("pause")}</b>` : ""}</div>
             ${mode === "heures_creuses" ? this._hcLine() : ""}
-            ${mode !== "arret" && this._e.charge_a && ca != null ? `<button class="cwant" data-tab="settings" title="Modifier dans l'onglet Réglages"><ha-icon icon="mdi:current-ac"></ha-icon><span>Courant de charge souhaité</span><b>${fmtN(ca)} A · ${this._kw(ca)}</b><ha-icon class="go" icon="mdi:tune-variant"></ha-icon></button>` : ""}
-            <div class="reason" data-more="reason">${r ? `Raison de la limite : <b>${esc(REASON[r] || r)}</b>` : ""}</div>
+            ${mode !== "arret" && this._e.charge_a && ca != null ? `<button class="cwant" data-tab="settings" title="${_("Modifier dans l'onglet Réglages")}"><ha-icon icon="mdi:current-ac"></ha-icon><span>${_("Courant de charge souhaité")}</span><b>${fmtN(ca)} A · ${this._kw(ca)}</b><ha-icon class="go" icon="mdi:tune-variant"></ha-icon></button>` : ""}
+            <div class="reason" data-more="reason">${r ? _("Raison de la limite : <b>{r}</b>", { r: esc(REASON[r] || r) }) : ""}</div>
             <div class="chips">${chips}</div></div>`;
         } else {
         const auto = !!dlS && this._optv("dl", dlS.state) === "on";
@@ -462,11 +686,11 @@
         const presets = auto ? "" : `<div class="presets">${[6, 10, 16, 20, 25, 32].map((a) =>
           `<button class="pre${curLim === a ? " on" : ""}" data-preset="${a}"><b>${a} A</b><small>${this._kw(a)}</small></button>`).join("")}</div>`;
         lim = `<div class="block lim${r && r !== "no_limit" ? " capped" : ""}">
-          ${this._slider("limit", auto ? "mdi:robot-outline" : "mdi:hand-back-right-outline", "Limite de charge",
-            auto ? "pilotée par le délestage — coupez-le pour régler à la main" : "réglage manuel", auto)}
-          <div class="scale"><span>0 · pause</span><span>6</span><span>16</span><span>32 A</span></div>
+          ${this._slider("limit", auto ? "mdi:robot-outline" : "mdi:hand-back-right-outline", _("Limite de charge"),
+            auto ? _("pilotée par le délestage — coupez-le pour régler à la main") : _("réglage manuel"), auto)}
+          <div class="scale"><span>${_("0 · pause")}</span><span>6</span><span>16</span><span>32 A</span></div>
           ${presets}
-          <div class="reason" data-more="reason">${r ? `Raison de la limite : <b>${esc(REASON[r] || r)}</b>` : ""}</div>
+          <div class="reason" data-more="reason">${r ? _("Raison de la limite : <b>{r}</b>", { r: esc(REASON[r] || r) }) : ""}</div>
           <div class="chips">${chips}</div></div>`;
         }
       }
@@ -478,10 +702,10 @@
       const conf = this._confirm && Date.now() - this._confirm < 4000;
       const act = (k, icon, label, cls, dis) => this._e[k] ? `<button class="act ${cls}" data-btn="${k}" ${dis ? "disabled" : ""}><ha-icon icon="${icon}"></ha-icon><span>${label}</span></button>` : "";
       const acts = [
-        canStop ? act("stop", "mdi:stop-circle-outline", "Arrêter", "pri stop") : act("start", "mdi:play-circle-outline", "Démarrer", "pri", !canStart),
-        paused ? act("resume", "mdi:play-pause", "Reprendre", "", false) : act("pause", "mdi:pause-circle-outline", "Pause", "", s !== "charging"),
-        act("override", "mdi:calendar-fast", "Dérogation", "", !["paused_by_scheduler", "connected"].includes(s)),
-        this._e.reboot ? `<button class="act warn${conf ? " confirm" : ""}" data-reboot><ha-icon icon="mdi:restart"></ha-icon><span>${conf ? "Confirmer ?" : "Redémarrer"}</span></button>` : "",
+        canStop ? act("stop", "mdi:stop-circle-outline", _("Arrêter"), "pri stop") : act("start", "mdi:play-circle-outline", _("Démarrer"), "pri", !canStart),
+        paused ? act("resume", "mdi:play-pause", _("Reprendre"), "", false) : act(_("pause"), "mdi:pause-circle-outline", _("Pause"), "", s !== "charging"),
+        act("override", "mdi:calendar-fast", _("Dérogation"), "", !["paused_by_scheduler", "connected"].includes(s)),
+        this._e.reboot ? `<button class="act warn${conf ? " confirm" : ""}" data-reboot><ha-icon icon="mdi:restart"></ha-icon><span>${conf ? _("Confirmer ?") : _("Redémarrer")}</span></button>` : "",
       ].join("");
       return `<div class="stats">${stats}</div>${lim}<div class="acts">${acts}</div>`;
     }
@@ -489,37 +713,37 @@
     // ---------- onglet Réglages ----------
     _settings() {
       const t = [
-        this._switch("auth", "mdi:card-account-details-outline", "Authentification", "Badge ou appli requis", "Démarrage automatique"),
-        this._switch("lock", "mdi:lock-outline", "Verrou", "Charge impossible", "Déverrouillée"),
-        this._switch("schedule", "mdi:calendar-clock", "Programme de charge", "Activé", "Désactivé"),
-        this._switch("buzzer", "mdi:volume-high", "Buzzer", "Sons activés", "Silencieux"),
-        this._switch("auto_update", "mdi:update", "Mise à jour auto.", "Activée", "Manuelle"),
-        this._switch("wifi_reset", "mdi:wifi-refresh", "Redémarrage si Wi-Fi perdu", "Activé", "Désactivé"),
-        this._switch("energy_mgmt", "mdi:transmission-tower", "Gestion d'énergie", "Activée", "Désactivée"),
-        this._switch("led_tpl", "mdi:palette", "Couleurs LED perso.", "Activées", "Désactivées"),
-        this._switch("pwm_precise", "mdi:sine-wave", "PWM précis", "Activé", "Désactivé"),
-        this._switch("mqtt", "mdi:lan-connect", "MQTT", "Activé", "Désactivé"),
+        this._switch("auth", "mdi:card-account-details-outline", _("Authentification"), _("Badge ou appli requis"), _("Démarrage automatique")),
+        this._switch("lock", "mdi:lock-outline", _("Verrou"), _("Charge impossible"), _("Déverrouillée")),
+        this._switch("schedule", "mdi:calendar-clock", _("Programme de charge"), _("Activé"), _("Désactivé")),
+        this._switch("buzzer", "mdi:volume-high", _("Buzzer"), _("Sons activés"), _("Silencieux")),
+        this._switch("auto_update", "mdi:update", _("Mise à jour auto."), _("Activée"), _("Manuelle")),
+        this._switch("wifi_reset", "mdi:wifi-refresh", _("Redémarrage si Wi-Fi perdu"), _("Activé"), _("Désactivé")),
+        this._switch("energy_mgmt", "mdi:transmission-tower", _("Gestion d'énergie"), _("Activée"), _("Désactivée")),
+        this._switch("led_tpl", "mdi:palette", _("Couleurs LED perso."), _("Activées"), _("Désactivées")),
+        this._switch("pwm_precise", "mdi:sine-wave", _("PWM précis"), _("Activé"), _("Désactivé")),
+        this._switch("mqtt", "mdi:lan-connect", "MQTT", _("Activé"), _("Désactivé")),
       ].join("");
       const sl = [
-        this._slider("user_limit", "mdi:account-cog", "Limite utilisateur", "courant maximal choisi"),
-        this._slider("user_power", "mdi:flash", "Puissance maximale", "la borne ne dépasse pas cette puissance"),
-        this._slider("car_min", "mdi:car-electric", "Courant minimal du véhicule"),
-        this._slider("led", "mdi:brightness-6", "Luminosité de la LED"),
-        this._slider("led_delay", "mdi:timer-sand", "Atténuation de la LED", "après ce délai"),
-        this._slider("install_set", "mdi:home-lightning-bolt", "Courant d'installation", "réglage électricien — prudence"),
+        this._slider("user_limit", "mdi:account-cog", _("Limite utilisateur"), _("courant maximal choisi")),
+        this._slider("user_power", "mdi:flash", _("Puissance maximale"), _("la borne ne dépasse pas cette puissance")),
+        this._slider("car_min", "mdi:car-electric", _("Courant minimal du véhicule")),
+        this._slider("led", "mdi:brightness-6", _("Luminosité de la LED")),
+        this._slider("led_delay", "mdi:timer-sand", _("Atténuation de la LED"), _("après ce délai")),
+        this._slider("install_set", "mdi:home-lightning-bolt", _("Courant d'installation"), _("réglage électricien — prudence")),
       ].join("");
       // courant de charge souhaité (pilotage HOLM Lektrico) : ici plutôt que dans l'onglet Charge, à l'abri des touchers involontaires
       let want = "";
       if (this._e.charge_a && this._ok("charge_a")) {
         const ca = this._optv("charge_a", this._n("charge_a")), mx = Number(this._s("charge_a")?.attributes?.max ?? 32);
         const dlS = this._dlId() ? this._hass.states[this._dlId()] : null;
-        want = `<div class="sec">Courant de charge</div><div class="block lim pilot">
-          ${this._slider("charge_a", "mdi:current-ac", "Courant de charge", dlS && this._optv("dl", dlS.state) === "on" ? "souhaité — le délestage peut le réduire" : "souhaité")}
+        want = `<div class="sec">${_("Courant de charge")}</div><div class="block lim pilot">
+          ${this._slider("charge_a", "mdi:current-ac", _("Courant de charge"), dlS && this._optv("dl", dlS.state) === "on" ? _("souhaité — le délestage peut le réduire") : _("souhaité"))}
           <div class="presets">${[6, 10, 16, 20, 25, 32].filter((a) => a <= mx).map((a) => `<button class="pre${ca === a ? " on" : ""}" data-preset="${a}" data-pk="charge_a"><b>${a} A</b><small>${this._kw(a)}</small></button>`).join("")}</div>
-          <div class="hint">Faites glisser la pastille, ou touchez une valeur.</div></div>`;
+          <div class="hint">${_("Faites glisser la pastille, ou touchez une valeur.")}</div></div>`;
       }
-      return `${want}<div class="sec">Fonctions</div><div class="tgrid">${t || `<div class="muted">Aucun réglage disponible.</div>`}</div>
-        ${sl ? `<div class="sec">Limites et LED</div><div class="block">${sl}</div>` : ""}`;
+      return `${want}<div class="sec">${_("Fonctions")}</div><div class="tgrid">${t || `<div class="muted">${_("Aucun réglage disponible.")}</div>`}</div>
+        ${sl ? `<div class="sec">${_("Limites et LED")}</div><div class="block">${sl}</div>` : ""}`;
     }
 
     // ---------- onglet Statistiques ----------
@@ -527,17 +751,17 @@
       const tot = this._n("total"), sess = this._n("sessions"), tt = this._n("total_time"), last = this._n("last_session");
       const avg = tot != null && sess ? tot / sess : null;
       const tiles = [
-        this._stat("total", "mdi:counter", "Énergie totale", tot != null ? `${fmtN(tot, tot < 100 ? 1 : 0)} kWh` : "–"),
-        this._stat("sessions", "mdi:numeric", "Sessions", sess != null ? fmtN(sess) : "–"),
-        this._stat("total_time", "mdi:timer-sand-complete", "Temps de charge", fmtHours(tt)),
-        this._stat("last_session", "mdi:history", "Dernière session", last != null ? `${fmtN(last, 2)} kWh` : "–"),
+        this._stat("total", "mdi:counter", _("Énergie totale"), tot != null ? `${fmtN(tot, tot < 100 ? 1 : 0)} kWh` : "–"),
+        this._stat("sessions", "mdi:numeric", _("Sessions"), sess != null ? fmtN(sess) : "–"),
+        this._stat("total_time", "mdi:timer-sand-complete", _("Temps de charge"), fmtHours(tt)),
+        this._stat("last_session", "mdi:history", _("Dernière session"), last != null ? `${fmtN(last, 2)} kWh` : "–"),
       ].join("");
       const rows = [
-        avg != null ? `<div class="row static"><ha-icon icon="mdi:approximately-equal"></ha-icon><span class="rl">Moyenne par session</span><b>${fmtN(avg, 2)} kWh</b></div>` : "",
-        this._row("energy", "mdi:battery-plus-variant", "Session en cours", this._v("energy", (v) => `${fmtN(v, 2)} kWh`)),
-        this._row("time", "mdi:timer-outline", "Durée de la session", fmtDur(this._n("time"))),
-        this._row("session_id", "mdi:pound", "Numéro de session", this._v("session_id", (v) => fmtN(v))),
-        this._row("energy_index", "mdi:meter-electric", "Index d'énergie", this._v("energy_index", (v) => `${fmtN(v, 2)} kWh`)),
+        avg != null ? `<div class="row static"><ha-icon icon="mdi:approximately-equal"></ha-icon><span class="rl">${_("Moyenne par session")}</span><b>${fmtN(avg, 2)} kWh</b></div>` : "",
+        this._row("energy", "mdi:battery-plus-variant", _("Session en cours"), this._v("energy", (v) => `${fmtN(v, 2)} kWh`)),
+        this._row("time", "mdi:timer-outline", _("Durée de la session"), fmtDur(this._n("time"))),
+        this._row("session_id", "mdi:pound", _("Numéro de session"), this._v("session_id", (v) => fmtN(v))),
+        this._row("energy_index", "mdi:meter-electric", _("Index d'énergie"), this._v("energy_index", (v) => `${fmtN(v, 2)} kWh`)),
       ].join("");
       return `<div class="stats four">${tiles}</div><div class="block list">${rows}</div>`;
     }
@@ -547,36 +771,36 @@
       const h = this._hass;
       const rssi = this._n("rssi");
       const bars = rssi == null ? 0 : rssi >= -55 ? 4 : rssi >= -65 ? 3 : rssi >= -75 ? 2 : 1;
-      const wifiQ = rssi == null ? "" : ["", "faible", "moyen", "bon", "excellent"][bars];
+      const wifiQ = rssi == null ? "" : _(["", _("faible"), _("moyen"), _("bon"), _("excellent")][bars]);
       const up = this._n("uptime");
-      const sumTxt = bad.length ? `${bad.length} défaut${bad.length > 1 ? "s" : ""} : ${bad.map((x) => x.label).join(", ")}` : `${this._e.diag.length} contrôles OK`;
+      const sumTxt = bad.length ? _(bad.length > 1 ? _("{n} défauts : {l}") : _("{n} défaut : {l}"), { n: bad.length, l: bad.map((x) => _(x.label)).join(", ") }) : _("{n} contrôles OK", { n: this._e.diag.length });
       const faults = this._e.diag.map((d) => {
         const ko = h.states[d.id] && h.states[d.id].state === "on";
-        return `<button class="fchip${ko ? " ko" : ""}" data-more="${d.id}"><ha-icon icon="${ko ? d.icon : "mdi:check-circle"}"></ha-icon><span>${d.label}</span></button>`;
+        return `<button class="fchip${ko ? " ko" : ""}" data-more="${d.id}"><ha-icon icon="${ko ? d.icon : "mdi:check-circle"}"></ha-icon><span>${_(d.label)}</span></button>`;
       }).join("");
       const health = [
-        this._row("rssi", `mdi:wifi-strength-${bars || "off"}`, "Signal Wi-Fi", rssi != null ? `${fmtN(rssi)} dBm` : "–", wifiQ),
-        this._row("reconnects", "mdi:wifi-refresh", "Reconnexions Wi-Fi", this._v("reconnects", (v) => fmtN(v))),
-        this._row("ip", "mdi:ip-network-outline", "Adresse IP", esc(this._s("ip")?.state ?? "–")),
-        this._row("uptime", "mdi:clock-check-outline", "Temps de fonctionnement", fmtHours(up), "retombe à zéro si la borne redémarre"),
-        this._row("heap", "mdi:memory", "Mémoire libre", this._v("heap", (v) => `${fmtN(v)} Kio`)),
-        this._row("requests", "mdi:swap-vertical", "Requêtes envoyées", this._v("requests", (v) => fmtN(v)), "depuis le démarrage de Home Assistant"),
-        this._row("failures", "mdi:lan-disconnect", "Échecs de communication", this._v("failures", (v) => fmtN(v)), "", this._n("failures") ? "warnrow" : ""),
+        this._row("rssi", `mdi:wifi-strength-${bars || "off"}`, _("Signal Wi-Fi"), rssi != null ? `${fmtN(rssi)} dBm` : "–", wifiQ),
+        this._row("reconnects", "mdi:wifi-refresh", _("Reconnexions Wi-Fi"), this._v("reconnects", (v) => fmtN(v))),
+        this._row("ip", "mdi:ip-network-outline", _("Adresse IP"), esc(this._s("ip")?.state ?? "–")),
+        this._row("uptime", "mdi:clock-check-outline", _("Temps de fonctionnement"), fmtHours(up), _("retombe à zéro si la borne redémarre")),
+        this._row("heap", "mdi:memory", _("Mémoire libre"), this._v("heap", (v) => `${fmtN(v)} Kio`)),
+        this._row("requests", "mdi:swap-vertical", _("Requêtes envoyées"), this._v("requests", (v) => fmtN(v)), _("depuis le démarrage de Home Assistant")),
+        this._row("failures", "mdi:lan-disconnect", _("Échecs de communication"), this._v("failures", (v) => fmtN(v)), "", this._n("failures") ? "warnrow" : ""),
       ].join("");
       const tech = [
-        this._row("iec", "mdi:ev-plug-type2", "État IEC 61851", esc(this._s("iec")?.state ?? "–")),
-        this._row("pwm", "mdi:pulse", "Courant PWM", this._v("pwm", (v) => `${fmtN(v)} A`)),
-        this._row("allowed", "mdi:current-ac", "Courant de charge autorisé", this._v("allowed", (v) => `${fmtN(v)} A`)),
-        this._row("sysmax", "mdi:arrow-collapse-up", "Courant maximal système", this._v("sysmax", (v) => `${fmtN(v)} A`)),
-        this._row("sched_cur", "mdi:calendar-clock", "Courant du programme", this._v("sched_cur", (v) => `${fmtN(v)} A`)),
-        this._row("temp_cur", "mdi:thermometer-lines", "Courant limité par la température", this._v("temp_cur", (v) => `${fmtN(v)} A`)),
-        this._row("upow_cur", "mdi:flash-outline", "Courant puissance utilisateur", this._v("upow_cur", (v) => `${fmtN(v)} A`)),
-        this._row("install", "mdi:home-lightning-bolt-outline", "Courant de l'installation", this._v("install", (v) => `${fmtN(v)} A`)),
+        this._row("iec", "mdi:ev-plug-type2", _("État IEC 61851"), esc(this._s("iec")?.state ?? "–")),
+        this._row("pwm", "mdi:pulse", _("Courant PWM"), this._v("pwm", (v) => `${fmtN(v)} A`)),
+        this._row("allowed", "mdi:current-ac", _("Courant de charge autorisé"), this._v("allowed", (v) => `${fmtN(v)} A`)),
+        this._row("sysmax", "mdi:arrow-collapse-up", _("Courant maximal système"), this._v("sysmax", (v) => `${fmtN(v)} A`)),
+        this._row("sched_cur", "mdi:calendar-clock", _("Courant du programme"), this._v("sched_cur", (v) => `${fmtN(v)} A`)),
+        this._row("temp_cur", "mdi:thermometer-lines", _("Courant limité par la température"), this._v("temp_cur", (v) => `${fmtN(v)} A`)),
+        this._row("upow_cur", "mdi:flash-outline", _("Courant puissance utilisateur"), this._v("upow_cur", (v) => `${fmtN(v)} A`)),
+        this._row("install", "mdi:home-lightning-bolt-outline", _("Courant de l'installation"), this._v("install", (v) => `${fmtN(v)} A`)),
       ].join("");
       return `<div class="diagsum${bad.length ? " bad" : ""}"><ha-icon icon="${bad.length ? "mdi:alert-circle" : "mdi:shield-check"}"></ha-icon><span>${sumTxt}</span></div>
         <div class="fgrid">${faults}</div>
-        ${health ? `<div class="sec">Liaison et santé</div><div class="block list">${health}</div>` : ""}
-        ${tech ? `<div class="sec">Courants et état technique</div><div class="block list">${tech}</div>` : ""}`;
+        ${health ? `<div class="sec">${_("Liaison et santé")}</div><div class="block list">${health}</div>` : ""}
+        ${tech ? `<div class="sec">${_("Courants et état technique")}</div><div class="block list">${tech}</div>` : ""}`;
     }
 
     static css() {
@@ -807,7 +1031,7 @@
 
   class HolmBorneCardEditor extends HTMLElement {
     setConfig(config) { this._config = config || {}; if (this._form && !this._self) this._form.data = this._data(); }
-    set hass(hass) { this._hass = hass; this._render(); }
+    set hass(hass) { this._hass = hass; const _l = setLang(hass, this._config); if (this._form && _l !== this._lang) { this._form.remove(); this._form = null; } this._lang = _l; this._render(); }
     connectedCallback() { this._render(); }
     _data() { return { show_diagnostic: true, show_settings: true, car_color: "#4a5d70", default_tab: "charge", ...this._config }; }
     _render() {
@@ -815,17 +1039,18 @@
       if (!this._form) {
         const f = document.createElement("ha-form");
         f.schema = [
+          langField(),
           { name: "entity", required: true, selector: { entity: { domain: "sensor" } } },
           { name: "name", selector: { text: {} } },
           { name: "delestage_entity", selector: { entity: { domain: ["automation", "input_boolean", "switch"] } } },
           { name: "hc_entity", selector: { entity: { domain: "binary_sensor" } } },
-          { type: "expandable", title: "Photo (à la place de l'illustration)", icon: "mdi:image", flatten: true, schema: [
+          { type: "expandable", title: _("Photo (à la place de l'illustration)"), icon: "mdi:image", flatten: true, schema: [
             { name: "image_media", selector: { media: { accept: ["image/*"] } } },
             { name: "image", selector: { text: {} } },
-            { name: "image_fit", selector: { select: { mode: "dropdown", options: [{ value: "cover", label: "Remplir le cadre" }, { value: "contain", label: "Image entière" }] } } },
+            { name: "image_fit", selector: { select: { mode: "dropdown", options: [{ value: "cover", label: _("Remplir le cadre") }, { value: "contain", label: _("Image entière") }] } } },
           ] },
           { type: "grid", name: "", schema: [
-            { name: "default_tab", selector: { select: { mode: "dropdown", options: [{ value: "charge", label: "Charge" }, { value: "settings", label: "Réglages" }, { value: "stats", label: "Statistiques" }, { value: "diag", label: "Diagnostic" }] } } },
+            { name: "default_tab", selector: { select: { mode: "dropdown", options: [{ value: "charge", label: _("Charge") }, { value: "settings", label: _("Réglages") }, { value: "stats", label: _("Statistiques") }, { value: "diag", label: _("Diagnostic") }] } } },
             { name: "car_color", selector: { text: {} } },
           ] },
           { type: "grid", name: "", schema: [
@@ -833,13 +1058,13 @@
             { name: "show_diagnostic", selector: { boolean: {} } },
           ] },
         ];
-        const L = { entity: "Entité « État » de la borne", name: "Nom affiché", delestage_entity: "Délestage (si non intégré : automatisation)", hc_entity: "Heures creuses pour le décompte (HOLM HP/HC, détectées automatiquement)",
-          default_tab: "Onglet affiché par défaut", image_media: "Photo (médiathèque : vous pouvez y téléverser une image)", image: "… ou adresse d'une image (ex. /local/borne.jpg)", image_fit: "Cadrage de la photo", car_color: "Couleur de la voiture (ex. #4a5d70)", show_settings: "Onglet Réglages", show_diagnostic: "Onglet Diagnostic" };
+        const L = { language: _("Langue"), entity: _("Entité « État » de la borne"), name: _("Nom affiché"), delestage_entity: _("Délestage (si non intégré : automatisation)"), hc_entity: _("Heures creuses pour le décompte (HOLM HP/HC, détectées automatiquement)"),
+          default_tab: _("Onglet affiché par défaut"), image_media: _("Photo (médiathèque : vous pouvez y téléverser une image)"), image: _("… ou adresse d'une image (ex. /local/borne.jpg)"), image_fit: _("Cadrage de la photo"), car_color: _("Couleur de la voiture (ex. #4a5d70)"), show_settings: _("Onglet Réglages"), show_diagnostic: _("Onglet Diagnostic") };
         f.computeLabel = (s) => L[s.name] || s.name;
         f.addEventListener("value-changed", (ev) => {
           ev.stopPropagation(); this._config = { ...ev.detail.value }; this._self = true;
           if (this._config.image_media && !this._config.image_media.media_content_id) delete this._config.image_media;
-          for (const k of ["image", "image_fit", "hc_entity"]) if (!this._config[k]) delete this._config[k];
+          for (const k of ["image", "image_fit", "hc_entity", "language"]) if (!this._config[k]) delete this._config[k];
           this.dispatchEvent(new CustomEvent("config-changed", { detail: { config: this._config }, bubbles: true, composed: true }));
           setTimeout(() => (this._self = false), 0);
         });
@@ -853,7 +1078,8 @@
   if (!customElements.get("holm-borne-card-editor")) customElements.define("holm-borne-card-editor", HolmBorneCardEditor);
   window.customCards = window.customCards || [];
   if (!window.customCards.some((c) => c.type === "holm-borne-card")) {
-    window.customCards.push({ type: "holm-borne-card", name: "HOLM Borne", description: "Borne de recharge (HOLM Lektrico…) : illustration animée, mesures, limite, actions, réglages, statistiques, diagnostic et délestage.", preview: true });
+    setLang(document.querySelector("home-assistant")?.hass);
+    window.customCards.push({ type: "holm-borne-card", name: _("HOLM Borne"), description: _("Borne de recharge (HOLM Lektrico…) : illustration animée, mesures, limite, actions, réglages, statistiques, diagnostic et délestage."), preview: true });
   }
   console.info(`%c HOLM-BORNE-CARD %c v${VERSION} `, "background:#3ecf8e;color:#08130e;font-weight:700", "background:#1b2633;color:#fff");
 })();

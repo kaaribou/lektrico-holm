@@ -1,0 +1,369 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Aggiungi una wallbox Lektrico",
+        "description": "Configurazione manuale tramite indirizzo IP: HOLM Lektrico non usa il rilevamento automatico e interroga la wallbox con parsimonia (al massimo 2 richieste ogni 30 s).",
+        "data": {
+          "host": "Indirizzo IP della wallbox",
+          "name": "Nome del dispositivo",
+          "prefix": "Prefisso delle entità"
+        },
+        "data_description": {
+          "prefix": "Le entità si chiameranno ad es. sensor.<prefix>_etat."
+        }
+      },
+      "reconfigure": {
+        "title": "Cambia l'indirizzo della wallbox",
+        "data": {
+          "host": "Indirizzo IP della wallbox"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Impossibile raggiungere la wallbox a questo indirizzo."
+    },
+    "abort": {
+      "already_configured": "Questa wallbox è già configurata.",
+      "reconfigure_successful": "Indirizzo aggiornato.",
+      "wrong_device": "Questo indirizzo appartiene a un'altra wallbox."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opzioni",
+        "menu_options": {
+          "general": "Interrogazione della wallbox",
+          "pilot": "Controllo della ricarica (fuori punta, distacco carichi)"
+        }
+      },
+      "general": {
+        "title": "Interrogazione",
+        "data": {
+          "scan_interval": "Intervallo di interrogazione"
+        }
+      },
+      "pilot": {
+        "title": "Controllo della ricarica",
+        "description": "HOLM Lektrico imposta da solo il limite dinamico della wallbox: ricarica nelle ore fuori punta (o subito, o stop) e distacco carichi per non superare mai la potenza del contratto. Sostituisce le automazioni di distacco carichi.",
+        "data": {
+          "pilot": "Attiva il controllo della ricarica",
+          "hc_entity": "Entità fuori punta",
+          "hc_values": "Valore/i che indicano fuori punta",
+          "meter_entity": "Potenza di rete al contatore (distacco carichi)",
+          "max_power": "Potenza massima al contatore",
+          "max_current": "Corrente massima della wallbox"
+        },
+        "data_description": {
+          "hc_entity": "Ad esempio un sensore di tariffa, un binary_sensor o un input_boolean che indica le ore fuori punta.",
+          "hc_values": "Separati da virgole: on, HC, 0.1589… I numeri vengono confrontati come numeri.",
+          "meter_entity": "Facoltativo: senza sensore, nessun distacco carichi.",
+          "max_power": "Contratto meno un margine: 12 kVA → 11.500 W, 9 kVA → 8.500 W, 6 kVA → 5.500 W."
+        }
+      }
+    },
+    "error": {
+      "hc_required": "Seleziona l'entità che indica le ore fuori punta."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "state": {
+        "name": "Stato",
+        "state": {
+          "available": "Disponibile",
+          "charging": "In ricarica",
+          "connected": "Collegato",
+          "error": "Errore",
+          "locked": "Bloccato",
+          "need_auth": "In attesa di autenticazione",
+          "paused": "In pausa",
+          "paused_by_scheduler": "In pausa per programma",
+          "updating_firmware": "Aggiornamento firmware"
+        }
+      },
+      "power": {
+        "name": "Potenza"
+      },
+      "energy": {
+        "name": "Energia"
+      },
+      "lifetime_energy": {
+        "name": "Energia totale"
+      },
+      "charging_time": {
+        "name": "Tempo di ricarica"
+      },
+      "temperature": {
+        "name": "Temperatura"
+      },
+      "current": {
+        "name": "Corrente"
+      },
+      "voltage": {
+        "name": "Tensione"
+      },
+      "installation_current": {
+        "name": "Corrente dell'impianto"
+      },
+      "limit_reason": {
+        "name": "Motivo del limite",
+        "state": {
+          "no_limit": "Nessun limite",
+          "installation_current": "Corrente dell'impianto",
+          "user_limit": "Limite utente",
+          "dynamic_limit": "Limite dinamico",
+          "schedule": "Programma",
+          "em_offline": "Contatore di energia offline",
+          "em": "Contatore di energia",
+          "ocpp": "OCPP",
+          "overtemperature": "Temperatura"
+        }
+      },
+      "iec_state": {
+        "name": "Stato IEC 61851"
+      },
+      "pwm_current": {
+        "name": "Corrente PWM"
+      },
+      "session_id": {
+        "name": "Numero di sessione"
+      },
+      "heap_free": {
+        "name": "Memoria libera"
+      },
+      "em_current": {
+        "name": "Corrente di gestione energia"
+      },
+      "current_l1": {
+        "name": "Corrente L1"
+      },
+      "current_l2": {
+        "name": "Corrente L2"
+      },
+      "current_l3": {
+        "name": "Corrente L3"
+      },
+      "voltage_l1": {
+        "name": "Tensione L1"
+      },
+      "voltage_l2": {
+        "name": "Tensione L2"
+      },
+      "voltage_l3": {
+        "name": "Tensione L3"
+      },
+      "charging_current": {
+        "name": "Corrente di ricarica consentita"
+      },
+      "system_max_current": {
+        "name": "Corrente massima di sistema"
+      },
+      "schedule_current": {
+        "name": "Corrente da programma"
+      },
+      "temperature_current": {
+        "name": "Corrente limitata dalla temperatura"
+      },
+      "user_power_current": {
+        "name": "Corrente di potenza utente"
+      },
+      "ocpp_current": {
+        "name": "Corrente OCPP"
+      },
+      "wifi_rssi": {
+        "name": "Segnale Wi-Fi"
+      },
+      "wifi_ip": {
+        "name": "Indirizzo IP"
+      },
+      "total_sessions": {
+        "name": "Sessioni totali"
+      },
+      "total_time": {
+        "name": "Tempo totale di ricarica"
+      },
+      "last_session_energy": {
+        "name": "Energia dell'ultima sessione"
+      },
+      "requests": {
+        "name": "Richieste inviate"
+      },
+      "failures": {
+        "name": "Errori di comunicazione"
+      },
+      "uptime": {
+        "name": "Tempo di attività"
+      },
+      "energy_index": {
+        "name": "Indice energia"
+      },
+      "main_task_lwm": {
+        "name": "Stack del task principale"
+      },
+      "wifi_reconnects": {
+        "name": "Riconnessioni Wi-Fi"
+      },
+      "pilot": {
+        "name": "Controllo della ricarica"
+      }
+    },
+    "binary_sensor": {
+      "state_e_activated": {
+        "name": "Errore veicolo"
+      },
+      "overtemp": {
+        "name": "Limitazione termica"
+      },
+      "critical_temp": {
+        "name": "Surriscaldamento"
+      },
+      "overcurrent": {
+        "name": "Sovracorrente"
+      },
+      "meter_fault": {
+        "name": "Errore di misura"
+      },
+      "undervoltage": {
+        "name": "Sottotensione"
+      },
+      "overvoltage": {
+        "name": "Sovratensione"
+      },
+      "rcd_error": {
+        "name": "Errore differenziale"
+      },
+      "cp_diode_failure": {
+        "name": "Cortocircuito diodo veicolo"
+      },
+      "contactor_failure": {
+        "name": "Contatti del relè saldati"
+      },
+      "voltage_error": {
+        "name": "Errore di tensione"
+      },
+      "rcd_test_error": {
+        "name": "Test differenziale fallito"
+      },
+      "state_f_activated": {
+        "name": "Errore stato F"
+      },
+      "state_machine_error": {
+        "name": "Errore macchina a stati"
+      },
+      "active_errors": {
+        "name": "Errori attivi"
+      },
+      "paused": {
+        "name": "In pausa"
+      },
+      "vehicle_connected": {
+        "name": "Veicolo collegato"
+      },
+      "charging": {
+        "name": "In ricarica"
+      },
+      "wifi_connected": {
+        "name": "Wi-Fi connesso"
+      },
+      "schedule_override": {
+        "name": "Deroga del programma attiva"
+      }
+    },
+    "switch": {
+      "authentication": {
+        "name": "Autenticazione"
+      },
+      "lock": {
+        "name": "Blocco"
+      },
+      "charging_schedule": {
+        "name": "Programma di ricarica"
+      },
+      "auto_update": {
+        "name": "Aggiornamento automatico"
+      },
+      "energy_management": {
+        "name": "Gestione dell'energia"
+      },
+      "led_template": {
+        "name": "Colori LED personalizzati"
+      },
+      "precise_pwm": {
+        "name": "PWM preciso"
+      },
+      "buzzer": {
+        "name": "Cicalino"
+      },
+      "reset_on_wifi_loss": {
+        "name": "Riavvia alla perdita del Wi-Fi"
+      },
+      "mqtt": {
+        "name": "MQTT"
+      },
+      "delestage": {
+        "name": "Distacco carichi"
+      }
+    },
+    "number": {
+      "dynamic_limit": {
+        "name": "Limite dinamico"
+      },
+      "user_limit": {
+        "name": "Limite utente"
+      },
+      "user_power": {
+        "name": "Potenza massima"
+      },
+      "led_max_brightness": {
+        "name": "Luminosità LED"
+      },
+      "led_dimming_delay": {
+        "name": "Ritardo attenuazione LED"
+      },
+      "install_current": {
+        "name": "Corrente dell'impianto (impostazione)"
+      },
+      "car_minimum_current": {
+        "name": "Corrente minima del veicolo"
+      },
+      "charge_current": {
+        "name": "Corrente di ricarica"
+      }
+    },
+    "button": {
+      "charge_start": {
+        "name": "Avvia la ricarica"
+      },
+      "charge_stop": {
+        "name": "Ferma la ricarica"
+      },
+      "charge_pause": {
+        "name": "Pausa"
+      },
+      "charge_resume": {
+        "name": "Riprendi la ricarica"
+      },
+      "charging_schedule_override": {
+        "name": "Deroga del programma di ricarica"
+      },
+      "session_energy_reset": {
+        "name": "Azzera l'energia della sessione"
+      },
+      "reboot": {
+        "name": "Riavvia"
+      }
+    },
+    "select": {
+      "charge_mode": {
+        "name": "Modalità di ricarica",
+        "state": {
+          "heures_creuses": "Ore fuori punta",
+          "maintenant": "Subito",
+          "arret": "Stop"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,369 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Dodaj ładowarkę Lektrico",
+        "description": "Ręczna konfiguracja przez adres IP: HOLM Lektrico nie używa automatycznego wykrywania i oszczędnie odpytuje ładowarkę (maks. 2 zapytania co 30 s).",
+        "data": {
+          "host": "Adres IP ładowarki",
+          "name": "Nazwa urządzenia",
+          "prefix": "Prefiks encji"
+        },
+        "data_description": {
+          "prefix": "Encje będą nazwane np. sensor.<prefix>_etat."
+        }
+      },
+      "reconfigure": {
+        "title": "Zmień adres ładowarki",
+        "data": {
+          "host": "Adres IP ładowarki"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Nie można połączyć się z ładowarką pod tym adresem."
+    },
+    "abort": {
+      "already_configured": "Ta ładowarka jest już skonfigurowana.",
+      "reconfigure_successful": "Adres zaktualizowany.",
+      "wrong_device": "Ten adres należy do innej ładowarki."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opcje",
+        "menu_options": {
+          "general": "Odpytywanie ładowarki",
+          "pilot": "Sterowanie ładowaniem (poza szczytem, odciążenie)"
+        }
+      },
+      "general": {
+        "title": "Odpytywanie",
+        "data": {
+          "scan_interval": "Interwał odpytywania"
+        }
+      },
+      "pilot": {
+        "title": "Sterowanie ładowaniem",
+        "description": "HOLM Lektrico sam ustawia dynamiczny limit ładowarki: ładowanie poza szczytem (lub teraz, lub stop) i odciążenie, by nigdy nie przekroczyć mocy umownej. Zastępuje automatyzacje odciążania.",
+        "data": {
+          "pilot": "Włącz sterowanie ładowaniem",
+          "hc_entity": "Encja poza szczytem",
+          "hc_values": "Wartości oznaczające poza szczytem",
+          "meter_entity": "Moc sieci na liczniku (odciążenie)",
+          "max_power": "Maksymalna moc na liczniku",
+          "max_current": "Maksymalny prąd ładowarki"
+        },
+        "data_description": {
+          "hc_entity": "Na przykład czujnik taryfy, binary_sensor lub input_boolean wskazujący godziny poza szczytem.",
+          "hc_values": "Oddzielone przecinkami: on, HC, 0.1589… Liczby są porównywane jako liczby.",
+          "meter_entity": "Opcjonalnie: bez czujnika brak odciążania.",
+          "max_power": "Umowa minus margines: 12 kVA → 11 500 W, 9 kVA → 8 500 W, 6 kVA → 5 500 W."
+        }
+      }
+    },
+    "error": {
+      "hc_required": "Wybierz encję wskazującą godziny poza szczytem."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "state": {
+        "name": "Stan",
+        "state": {
+          "available": "Dostępna",
+          "charging": "Ładowanie",
+          "connected": "Podłączony",
+          "error": "Błąd",
+          "locked": "Zablokowana",
+          "need_auth": "Oczekiwanie na uwierzytelnienie",
+          "paused": "Wstrzymana",
+          "paused_by_scheduler": "Wstrzymana przez harmonogram",
+          "updating_firmware": "Aktualizacja oprogramowania"
+        }
+      },
+      "power": {
+        "name": "Moc"
+      },
+      "energy": {
+        "name": "Energia"
+      },
+      "lifetime_energy": {
+        "name": "Energia całkowita"
+      },
+      "charging_time": {
+        "name": "Czas ładowania"
+      },
+      "temperature": {
+        "name": "Temperatura"
+      },
+      "current": {
+        "name": "Prąd"
+      },
+      "voltage": {
+        "name": "Napięcie"
+      },
+      "installation_current": {
+        "name": "Prąd instalacji"
+      },
+      "limit_reason": {
+        "name": "Przyczyna ograniczenia",
+        "state": {
+          "no_limit": "Brak ograniczenia",
+          "installation_current": "Prąd instalacji",
+          "user_limit": "Limit użytkownika",
+          "dynamic_limit": "Limit dynamiczny",
+          "schedule": "Harmonogram",
+          "em_offline": "Licznik energii offline",
+          "em": "Licznik energii",
+          "ocpp": "OCPP",
+          "overtemperature": "Temperatura"
+        }
+      },
+      "iec_state": {
+        "name": "Stan IEC 61851"
+      },
+      "pwm_current": {
+        "name": "Prąd PWM"
+      },
+      "session_id": {
+        "name": "Numer sesji"
+      },
+      "heap_free": {
+        "name": "Wolna pamięć"
+      },
+      "em_current": {
+        "name": "Prąd zarządzania energią"
+      },
+      "current_l1": {
+        "name": "Prąd L1"
+      },
+      "current_l2": {
+        "name": "Prąd L2"
+      },
+      "current_l3": {
+        "name": "Prąd L3"
+      },
+      "voltage_l1": {
+        "name": "Napięcie L1"
+      },
+      "voltage_l2": {
+        "name": "Napięcie L2"
+      },
+      "voltage_l3": {
+        "name": "Napięcie L3"
+      },
+      "charging_current": {
+        "name": "Dozwolony prąd ładowania"
+      },
+      "system_max_current": {
+        "name": "Maksymalny prąd systemu"
+      },
+      "schedule_current": {
+        "name": "Prąd harmonogramu"
+      },
+      "temperature_current": {
+        "name": "Prąd ograniczony temperaturą"
+      },
+      "user_power_current": {
+        "name": "Prąd mocy użytkownika"
+      },
+      "ocpp_current": {
+        "name": "Prąd OCPP"
+      },
+      "wifi_rssi": {
+        "name": "Sygnał Wi-Fi"
+      },
+      "wifi_ip": {
+        "name": "Adres IP"
+      },
+      "total_sessions": {
+        "name": "Łączna liczba sesji"
+      },
+      "total_time": {
+        "name": "Łączny czas ładowania"
+      },
+      "last_session_energy": {
+        "name": "Energia ostatniej sesji"
+      },
+      "requests": {
+        "name": "Wysłane zapytania"
+      },
+      "failures": {
+        "name": "Błędy komunikacji"
+      },
+      "uptime": {
+        "name": "Czas pracy"
+      },
+      "energy_index": {
+        "name": "Indeks energii"
+      },
+      "main_task_lwm": {
+        "name": "Stos zadania głównego"
+      },
+      "wifi_reconnects": {
+        "name": "Ponowne połączenia Wi-Fi"
+      },
+      "pilot": {
+        "name": "Sterowanie ładowaniem"
+      }
+    },
+    "binary_sensor": {
+      "state_e_activated": {
+        "name": "Błąd pojazdu"
+      },
+      "overtemp": {
+        "name": "Ograniczenie termiczne"
+      },
+      "critical_temp": {
+        "name": "Przegrzanie"
+      },
+      "overcurrent": {
+        "name": "Przetężenie"
+      },
+      "meter_fault": {
+        "name": "Błąd pomiaru"
+      },
+      "undervoltage": {
+        "name": "Podnapięcie"
+      },
+      "overvoltage": {
+        "name": "Przepięcie"
+      },
+      "rcd_error": {
+        "name": "Błąd RCD"
+      },
+      "cp_diode_failure": {
+        "name": "Zwarcie diody pojazdu"
+      },
+      "contactor_failure": {
+        "name": "Zgrzane styki przekaźnika"
+      },
+      "voltage_error": {
+        "name": "Błąd napięcia"
+      },
+      "rcd_test_error": {
+        "name": "Niepowodzenie testu RCD"
+      },
+      "state_f_activated": {
+        "name": "Błąd stanu F"
+      },
+      "state_machine_error": {
+        "name": "Błąd maszyny stanów"
+      },
+      "active_errors": {
+        "name": "Aktywne błędy"
+      },
+      "paused": {
+        "name": "Wstrzymana"
+      },
+      "vehicle_connected": {
+        "name": "Pojazd podłączony"
+      },
+      "charging": {
+        "name": "Ładowanie"
+      },
+      "wifi_connected": {
+        "name": "Wi-Fi połączone"
+      },
+      "schedule_override": {
+        "name": "Aktywne pominięcie harmonogramu"
+      }
+    },
+    "switch": {
+      "authentication": {
+        "name": "Uwierzytelnianie"
+      },
+      "lock": {
+        "name": "Blokada"
+      },
+      "charging_schedule": {
+        "name": "Harmonogram ładowania"
+      },
+      "auto_update": {
+        "name": "Automatyczna aktualizacja"
+      },
+      "energy_management": {
+        "name": "Zarządzanie energią"
+      },
+      "led_template": {
+        "name": "Własne kolory LED"
+      },
+      "precise_pwm": {
+        "name": "Precyzyjny PWM"
+      },
+      "buzzer": {
+        "name": "Brzęczyk"
+      },
+      "reset_on_wifi_loss": {
+        "name": "Restart po utracie Wi-Fi"
+      },
+      "mqtt": {
+        "name": "MQTT"
+      },
+      "delestage": {
+        "name": "Odciążenie"
+      }
+    },
+    "number": {
+      "dynamic_limit": {
+        "name": "Limit dynamiczny"
+      },
+      "user_limit": {
+        "name": "Limit użytkownika"
+      },
+      "user_power": {
+        "name": "Moc maksymalna"
+      },
+      "led_max_brightness": {
+        "name": "Jasność LED"
+      },
+      "led_dimming_delay": {
+        "name": "Opóźnienie przyciemniania LED"
+      },
+      "install_current": {
+        "name": "Prąd instalacji (ustawienie)"
+      },
+      "car_minimum_current": {
+        "name": "Minimalny prąd pojazdu"
+      },
+      "charge_current": {
+        "name": "Prąd ładowania"
+      }
+    },
+    "button": {
+      "charge_start": {
+        "name": "Rozpocznij ładowanie"
+      },
+      "charge_stop": {
+        "name": "Zatrzymaj ładowanie"
+      },
+      "charge_pause": {
+        "name": "Pauza"
+      },
+      "charge_resume": {
+        "name": "Wznów ładowanie"
+      },
+      "charging_schedule_override": {
+        "name": "Pominięcie harmonogramu ładowania"
+      },
+      "session_energy_reset": {
+        "name": "Zeruj energię sesji"
+      },
+      "reboot": {
+        "name": "Uruchom ponownie"
+      }
+    },
+    "select": {
+      "charge_mode": {
+        "name": "Tryb ładowania",
+        "state": {
+          "heures_creuses": "Poza szczytem",
+          "maintenant": "Teraz",
+          "arret": "Stop"
+        }
+      }
+    }
+  }
+}

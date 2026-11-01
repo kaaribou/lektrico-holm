@@ -1,0 +1,369 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Lektrico-laadpaal toevoegen",
+        "description": "Handmatige installatie via IP-adres: HOLM Lektrico gebruikt geen automatische detectie en vraagt de laadpaal spaarzaam uit (maximaal 2 verzoeken per 30 s).",
+        "data": {
+          "host": "IP-adres van de laadpaal",
+          "name": "Apparaatnaam",
+          "prefix": "Entiteitsvoorvoegsel"
+        },
+        "data_description": {
+          "prefix": "Entiteiten heten dan bv. sensor.<prefix>_etat."
+        }
+      },
+      "reconfigure": {
+        "title": "Adres van de laadpaal wijzigen",
+        "data": {
+          "host": "IP-adres van de laadpaal"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Laadpaal niet bereikbaar op dit adres."
+    },
+    "abort": {
+      "already_configured": "Deze laadpaal is al ingesteld.",
+      "reconfigure_successful": "Adres bijgewerkt.",
+      "wrong_device": "Dit adres hoort bij een andere laadpaal."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opties",
+        "menu_options": {
+          "general": "Uitlezen van de laadpaal",
+          "pilot": "Laadsturing (daluren, lastafschakeling)"
+        }
+      },
+      "general": {
+        "title": "Uitlezen",
+        "data": {
+          "scan_interval": "Uitleesinterval"
+        }
+      },
+      "pilot": {
+        "title": "Laadsturing",
+        "description": "HOLM Lektrico stelt zelf de dynamische limiet van de laadpaal in: laden in daluren (of nu, of stop) en lastafschakeling zodat je nooit je aansluitvermogen overschrijdt. Vervangt de automatiseringen voor lastafschakeling.",
+        "data": {
+          "pilot": "Laadsturing inschakelen",
+          "hc_entity": "Dalentiteit",
+          "hc_values": "Waarde(n) die dal betekenen",
+          "meter_entity": "Netvermogen bij de meter (lastafschakeling)",
+          "max_power": "Maximaal vermogen bij de meter",
+          "max_current": "Maximale stroom van de laadpaal"
+        },
+        "data_description": {
+          "hc_entity": "Bijvoorbeeld een tariefsensor, een binary_sensor of een input_boolean die de daluren aangeeft.",
+          "hc_values": "Gescheiden door komma's: on, HC, 0.1589… Getallen worden als getallen vergeleken.",
+          "meter_entity": "Optioneel: geen sensor, geen lastafschakeling.",
+          "max_power": "Contract min een marge: 12 kVA → 11.500 W, 9 kVA → 8.500 W, 6 kVA → 5.500 W."
+        }
+      }
+    },
+    "error": {
+      "hc_required": "Selecteer de entiteit die de daluren aangeeft."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "state": {
+        "name": "Status",
+        "state": {
+          "available": "Beschikbaar",
+          "charging": "Laden",
+          "connected": "Verbonden",
+          "error": "Fout",
+          "locked": "Vergrendeld",
+          "need_auth": "Wachten op authenticatie",
+          "paused": "Gepauzeerd",
+          "paused_by_scheduler": "Gepauzeerd door schema",
+          "updating_firmware": "Firmware wordt bijgewerkt"
+        }
+      },
+      "power": {
+        "name": "Vermogen"
+      },
+      "energy": {
+        "name": "Energie"
+      },
+      "lifetime_energy": {
+        "name": "Totale energie"
+      },
+      "charging_time": {
+        "name": "Laadtijd"
+      },
+      "temperature": {
+        "name": "Temperatuur"
+      },
+      "current": {
+        "name": "Stroom"
+      },
+      "voltage": {
+        "name": "Spanning"
+      },
+      "installation_current": {
+        "name": "Installatiestroom"
+      },
+      "limit_reason": {
+        "name": "Reden van de limiet",
+        "state": {
+          "no_limit": "Geen limiet",
+          "installation_current": "Installatiestroom",
+          "user_limit": "Gebruikerslimiet",
+          "dynamic_limit": "Dynamische limiet",
+          "schedule": "Schema",
+          "em_offline": "Energiemeter offline",
+          "em": "Energiemeter",
+          "ocpp": "OCPP",
+          "overtemperature": "Temperatuur"
+        }
+      },
+      "iec_state": {
+        "name": "IEC 61851-status"
+      },
+      "pwm_current": {
+        "name": "PWM-stroom"
+      },
+      "session_id": {
+        "name": "Sessienummer"
+      },
+      "heap_free": {
+        "name": "Vrij geheugen"
+      },
+      "em_current": {
+        "name": "Stroom energiebeheer"
+      },
+      "current_l1": {
+        "name": "Stroom L1"
+      },
+      "current_l2": {
+        "name": "Stroom L2"
+      },
+      "current_l3": {
+        "name": "Stroom L3"
+      },
+      "voltage_l1": {
+        "name": "Spanning L1"
+      },
+      "voltage_l2": {
+        "name": "Spanning L2"
+      },
+      "voltage_l3": {
+        "name": "Spanning L3"
+      },
+      "charging_current": {
+        "name": "Toegestane laadstroom"
+      },
+      "system_max_current": {
+        "name": "Maximale systeemstroom"
+      },
+      "schedule_current": {
+        "name": "Stroom volgens schema"
+      },
+      "temperature_current": {
+        "name": "Door temperatuur beperkte stroom"
+      },
+      "user_power_current": {
+        "name": "Stroom gebruikersvermogen"
+      },
+      "ocpp_current": {
+        "name": "OCPP-stroom"
+      },
+      "wifi_rssi": {
+        "name": "Wifi-signaal"
+      },
+      "wifi_ip": {
+        "name": "IP-adres"
+      },
+      "total_sessions": {
+        "name": "Totaal sessies"
+      },
+      "total_time": {
+        "name": "Totale laadtijd"
+      },
+      "last_session_energy": {
+        "name": "Energie laatste sessie"
+      },
+      "requests": {
+        "name": "Verzonden verzoeken"
+      },
+      "failures": {
+        "name": "Communicatiefouten"
+      },
+      "uptime": {
+        "name": "Uptime"
+      },
+      "energy_index": {
+        "name": "Energie-index"
+      },
+      "main_task_lwm": {
+        "name": "Stack van hoofdtaak"
+      },
+      "wifi_reconnects": {
+        "name": "Wifi-herverbindingen"
+      },
+      "pilot": {
+        "name": "Laadsturing"
+      }
+    },
+    "binary_sensor": {
+      "state_e_activated": {
+        "name": "Voertuigfout"
+      },
+      "overtemp": {
+        "name": "Thermische begrenzing"
+      },
+      "critical_temp": {
+        "name": "Oververhitting"
+      },
+      "overcurrent": {
+        "name": "Overstroom"
+      },
+      "meter_fault": {
+        "name": "Meetfout"
+      },
+      "undervoltage": {
+        "name": "Onderspanning"
+      },
+      "overvoltage": {
+        "name": "Overspanning"
+      },
+      "rcd_error": {
+        "name": "Aardlekfout"
+      },
+      "cp_diode_failure": {
+        "name": "Kortsluiting voertuigdiode"
+      },
+      "contactor_failure": {
+        "name": "Gelaste relaiscontacten"
+      },
+      "voltage_error": {
+        "name": "Spanningsfout"
+      },
+      "rcd_test_error": {
+        "name": "Aardlektest mislukt"
+      },
+      "state_f_activated": {
+        "name": "Fout status F"
+      },
+      "state_machine_error": {
+        "name": "Fout in toestandsmachine"
+      },
+      "active_errors": {
+        "name": "Actieve fouten"
+      },
+      "paused": {
+        "name": "Gepauzeerd"
+      },
+      "vehicle_connected": {
+        "name": "Voertuig verbonden"
+      },
+      "charging": {
+        "name": "Laden"
+      },
+      "wifi_connected": {
+        "name": "Wifi verbonden"
+      },
+      "schedule_override": {
+        "name": "Schema-overschrijving actief"
+      }
+    },
+    "switch": {
+      "authentication": {
+        "name": "Authenticatie"
+      },
+      "lock": {
+        "name": "Vergrendeling"
+      },
+      "charging_schedule": {
+        "name": "Laadschema"
+      },
+      "auto_update": {
+        "name": "Automatische update"
+      },
+      "energy_management": {
+        "name": "Energiebeheer"
+      },
+      "led_template": {
+        "name": "Eigen ledkleuren"
+      },
+      "precise_pwm": {
+        "name": "Nauwkeurige PWM"
+      },
+      "buzzer": {
+        "name": "Zoemer"
+      },
+      "reset_on_wifi_loss": {
+        "name": "Herstarten bij wifi-verlies"
+      },
+      "mqtt": {
+        "name": "MQTT"
+      },
+      "delestage": {
+        "name": "Lastafschakeling"
+      }
+    },
+    "number": {
+      "dynamic_limit": {
+        "name": "Dynamische limiet"
+      },
+      "user_limit": {
+        "name": "Gebruikerslimiet"
+      },
+      "user_power": {
+        "name": "Maximaal vermogen"
+      },
+      "led_max_brightness": {
+        "name": "Ledhelderheid"
+      },
+      "led_dimming_delay": {
+        "name": "Vertraging leddimmen"
+      },
+      "install_current": {
+        "name": "Installatiestroom (instelling)"
+      },
+      "car_minimum_current": {
+        "name": "Minimale voertuigstroom"
+      },
+      "charge_current": {
+        "name": "Laadstroom"
+      }
+    },
+    "button": {
+      "charge_start": {
+        "name": "Laden starten"
+      },
+      "charge_stop": {
+        "name": "Laden stoppen"
+      },
+      "charge_pause": {
+        "name": "Pauze"
+      },
+      "charge_resume": {
+        "name": "Laden hervatten"
+      },
+      "charging_schedule_override": {
+        "name": "Laadschema overschrijven"
+      },
+      "session_energy_reset": {
+        "name": "Sessie-energie resetten"
+      },
+      "reboot": {
+        "name": "Herstarten"
+      }
+    },
+    "select": {
+      "charge_mode": {
+        "name": "Laadmodus",
+        "state": {
+          "heures_creuses": "Daluren",
+          "maintenant": "Nu",
+          "arret": "Stop"
+        }
+      }
+    }
+  }
+}
