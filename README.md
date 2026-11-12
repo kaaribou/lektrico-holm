@@ -1,56 +1,35 @@
-# 🟨 HOLM LaMetric
+# ⚡ HOLM Lektrico
 
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz/)
-![Version](https://img.shields.io/github/v/release/kaaribou/lametric-holm)
+![Version](https://img.shields.io/github/v/release/kaaribou/lektrico-holm)
 ![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2025.8%2B-03a9f4)
 
 🇫🇷 Français · [🇬🇧 English](README.en.md)
 
-**Tout le LaMetric Time dans Home Assistant, et des programmes pour décider quoi afficher, quand.**
+**Votre borne Lektrico (1P7K, 3P22K) dans Home Assistant, en local, sans la surcharger, avec sa carte, la charge en heures creuses et le délestage intégrés.**
 
-HOLM LaMetric remplace l'intégration LaMetric officielle. Elle pilote l'horloge par son **API locale** : luminosité, volume, applis, réveil, minuteur, radio, notifications riches. Elle ajoute surtout des **programmes** : la production solaire défile toute la journée mais plus le soir, la température extérieure reste affichée, la batterie de la maison apparaît en fin de journée, un rappel arrive le mardi soir… le tout réglé depuis une carte, sans YAML.
-
-> ✨ **La carte est fournie par l'intégration** : aucune ressource Lovelace à ajouter. Les réglages de l'intégration officielle sont repris en un clic.
-
-![L'écran](docs/images/apercu.jpg)
-
-| Les programmes | Un programme |
-|---|---|
-| ![Programmes](docs/images/programmes.jpg) | ![Éditeur](docs/images/editeur.jpg) |
+HOLM Lektrico remplace l'intégration Lektrico officielle. Elle parle à la borne par son **API locale** (JSON-RPC du micrologiciel) mais l'interroge **avec parcimonie**. Sur certaines bornes, l'interrogation intensive de l'intégration officielle (3 à 4 requêtes toutes les 10 secondes, connexions maintenues ouvertes, détection automatique) finit par bloquer la pile réseau de la borne. Elle disparaît alors du Wi-Fi jusqu'à une coupure de courant.
 
 ### En bref
 
-- 🗓️ **Programmes** :
-  - **affichage continu** : les écrans des programmes actifs défilent dans l'appli **My Data** du LaMetric, mis à jour dès qu'une valeur change ;
-  - **notification** : envoyée toutes les X minutes, ou une fois au début de chaque plage ;
-  - actifs selon les **jours**, des **plages horaires** (heure fixe, lever ou coucher du soleil avec décalage, plages qui passent minuit) et des **conditions** sur vos entités ;
-  - une **frise sur 24 h** montre qui s'affiche quand.
-- 🖼️ **Écrans** : texte (avec les modèles Home Assistant ou la valeur d'une entité), **jauge** (une batterie, un objectif), **graphique** de l'historique d'une entité. Option « masquer si zéro » pour la production solaire la nuit.
-- 🔎 **Les ~74 000 icônes LaMetric** se cherchent par nom directement dans la carte.
-- 🌙 **Mode nuit** : seules les notifications importantes passent, sans son, et la luminosité baisse puis revient le matin.
-- 🔔 **Notifications riches** : plusieurs écrans, priorité, son (ou MP3), répétitions, durée de vie. Le mode nuit s'applique aussi à vos automatisations, si vous le souhaitez.
-- 🎛️ **Tout l'appareil** : luminosité et mode auto, volume, Bluetooth, économiseur d'écran, appli affichée, appli suivante ou précédente, réveil, minuteur, chronomètre, radio, cadran de l'horloge.
-- 👀 **La carte** montre en direct ce qu'affiche le LaMetric, sur un écran LED fidèle (37 × 8), avec les réglages rapides et la file de notifications.
+- 🐢 **Économe** : 2 requêtes au plus par cycle, toutes les 30 s par défaut (réglable de 15 à 300 s). Une seule requête à la fois, et la connexion est refermée après chaque réponse.
+- 🔁 **Données lentes en tourniquet** : une seule par cycle. Réglages de la borne toutes les 2 min (une puissance changée dans l'application Lektrico remonte vite), Wi-Fi et compteurs toutes les 5 min, courants système un cycle sur deux.
+- 🛟 **Recul automatique** : si la borne répond mal, l'intervalle double à chaque échec (60, 120, 240 s… jusqu'à 5 min), puis revient à la normale dès qu'elle répond.
+- 🙅 **Aucune détection automatique** : la borne n'est ajoutée qu'avec son adresse IP, quand vous le décidez.
+- 🧩 **Toutes les entités** : état, mesures, défauts détaillés, courants système, Wi-Fi, compteurs, réglages et commandes.
+- 🎴 **Carte HOLM Borne incluse**, déclarée automatiquement.
+- 🔌 **Pilotage intégré** : charge en heures creuses, « maintenant » ou arrêt, et délestage pour ne jamais dépasser votre abonnement, sans automatisation.
+- 🔗 **Compatible** avec les identifiants de l'intégration officielle : vos cartes et automatisations continuent de fonctionner.
+
+| Charge et pilotage | Réglages | Diagnostic |
+|---|---|---|
+| ![Onglet Charge](docs/images/carte-charge.png) | ![Onglet Réglages](docs/images/carte-reglages.png) | ![Onglet Diagnostic](docs/images/carte-diagnostic.png) |
 
 
-### 🆕 Nouveautés de la 1.2.0
+### 🆕 Nouveautés de la 1.3.0
 
-- 🌍 **8 langues** : l'intégration (configuration, options, entités, actions) est traduite en français, anglais, allemand, espagnol, italien, néerlandais, portugais et polonais, selon la langue de Home Assistant. La carte **HOLM LaMetric** aussi, éditeur compris ; son option `language` permet d'imposer une langue.
+- 🌍 **8 langues** : l'intégration (configuration, options, entités, actions) est traduite en français, anglais, allemand, espagnol, italien, néerlandais, portugais et polonais, selon la langue de Home Assistant. La carte **HOLM Borne** aussi, éditeur compris ; son option `language` permet d'imposer une langue.
 - 🇬🇧 README en anglais.
-
----
-
-## Sommaire
-
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [La carte `holm-lametric-card`](#la-carte-holm-lametric-card)
-- [Programmes](#programmes)
-- [Mode nuit](#mode-nuit)
-- [Actions](#actions)
-- [Venir de l'intégration officielle](#venir-de-lintégration-officielle)
-- [Entités](#entités)
-- [FAQ / dépannage](#faq--dépannage)
 
 ---
 
@@ -58,233 +37,118 @@ HOLM LaMetric remplace l'intégration LaMetric officielle. Elle pilote l'horloge
 
 ### Via HACS (recommandé)
 
-1. HACS → menu ⋮ → **Dépôts personnalisés** → ajoutez `https://github.com/kaaribou/lametric-holm`, catégorie **Intégration**.
-2. Recherchez **HOLM LaMetric** et installez.
+1. HACS → menu ⋮ → **Dépôts personnalisés** → ajoutez `https://github.com/kaaribou/lektrico-holm`, catégorie **Intégration**.
+2. Recherchez **HOLM Lektrico** et installez.
 3. Redémarrez Home Assistant.
 
 ### Manuelle
 
-Copiez le dossier `custom_components/lametric_holm` dans le dossier `custom_components` de votre configuration, puis redémarrez Home Assistant.
-
----
+Copiez le dossier `custom_components/lektrico_holm` dans le dossier `custom_components` de votre configuration, puis redémarrez Home Assistant.
 
 ## Configuration
 
-### 1. Préparer le LaMetric
+> ⚠️ Supprimez d'abord l'intégration Lektrico officielle (et ignorez sa détection automatique). Deux intégrations qui interrogent la même borne doublent la charge.
 
-Pour l'affichage continu, installez l'appli **My Data DIY** sur le LaMetric (depuis l'application mobile LaMetric, rubrique « Apps »), puis réglez-la ainsi :
+Paramètres → Appareils et services → **Ajouter une intégration** → **HOLM Lektrico** :
 
-- **Type** : `HTTP Push` ;
-- **Data Format** : `Predefined (LaMetric Format)`.
+- **Adresse IP de la borne** : réservez-lui une adresse fixe dans votre routeur.
+- **Nom de l'appareil** : « Borne de recharge » par défaut.
+- **Préfixe des entités** : `garage_borne_de_recharge` par défaut. Les entités s'appellent alors `sensor.garage_borne_de_recharge_etat`, `number.garage_borne_de_recharge_limite_dynamique`… Gardez le préfixe de vos anciennes entités pour que vos cartes et automatisations les retrouvent.
 
-L'intégration la trouve toute seule. Sans elle, tout fonctionne sauf l'affichage continu des programmes.
-
-### 2. Ajouter l'intégration
-
-**Paramètres → Appareils et services → Ajouter une intégration → HOLM LaMetric.**
-
-- Si l'intégration **LaMetric officielle** est déjà configurée, choisissez « Reprendre ses réglages » : l'adresse et la clé d'API sont reprises, rien à saisir.
-- Sinon, saisissez l'**adresse IP** du LaMetric et sa **clé d'API** (sur [developer.lametric.com](https://developer.lametric.com), rubrique *Devices*).
-
-Les deux intégrations peuvent fonctionner en même temps le temps de migrer vos automatisations.
-
-### Options
-
-| Option | Rôle | Par défaut |
-|---|---|---|
-| Fréquence de lecture | Intervalle de lecture de l'état du LaMetric | 30 s |
-| Appli My Data | Widget My Data utilisé pour l'affichage continu, si vous en avez plusieurs | Automatique |
-
----
-
-## La carte `holm-lametric-card`
-
-```yaml
-type: custom:holm-lametric-card
-```
-
-| Option | Valeurs | Par défaut |
-|---|---|---|
-| `title` | texte | `LaMetric` |
-| `view` | `full` (onglets) · `screen` (écran et réglages rapides seulement) | `full` |
-| `tab` | onglet à l'ouverture : `screen` · `programmes` · `notify` · `settings` | `screen` |
-| `show_frame` | `false` pour une carte sans cadre | `true` |
-| `entry_id` | pour viser un LaMetric précis si vous en avez plusieurs | le premier |
-| `language` | `fr` · `en` · `de` · `es` · `it` · `nl` · `pt` · `pl` | langue du profil Home Assistant |
-
-Quatre onglets :
-
-- **Écran** : ce qu'affiche My Data en ce moment, les programmes en cours, luminosité, volume, Bluetooth, les applis (un clic pour en changer) et la file des notifications.
-- **Programmes** : la frise de la journée, la liste des programmes (activer, réordonner, modifier) et deux modèles prêts à l'emploi, **Production solaire** et **Températures**, qui trouvent seuls vos capteurs.
-- **Notifier** : composez une notification et envoyez-la, ou affichez-la quelques minutes dans My Data.
-- **Réglages** : pause générale des programmes, écran d'attente, mode nuit, son par défaut, mode de défilement des applis, économiseur d'écran.
-
-![Notifier](docs/images/notifier.jpg)
-
----
-
-## Programmes
-
-Un programme, c'est **quoi afficher** (des écrans) et **quand** (jours, plages, conditions).
-
-### Deux façons d'afficher
-
-| Mode | Ce qui se passe |
-|---|---|
-| **Affichage continu** | Tant que le programme est actif, ses écrans sont envoyés à l'appli My Data. Les écrans de tous les programmes actifs se suivent dans l'ordre de la liste. Quand aucun n'est actif, l'**écran d'attente** prend le relais. |
-| **Notification** | Tant que le programme est actif, une notification est envoyée toutes les X minutes. Avec un intervalle à 0, elle part une seule fois au début de chaque plage. |
-
-### Les écrans
-
-| Type | Contenu |
-|---|---|
-| **Texte** | Un texte fixe, un modèle (`{{ states('sensor.x') }}`), ou la valeur d'une entité (son état ou l'un de ses attributs, par exemple la température d'une entité météo). Avec une entité, `{value}` et `{unit}` se placent où vous voulez (`Salon {value}°`) ; laissé vide, le texte affiche la valeur et son unité. Décimales réglables, option « masquer si zéro ». |
-| **Jauge** | La valeur d'une entité entre un début et un objectif, avec une barre de progression. |
-| **Graphique** | L'historique d'une entité sur les X dernières heures, en barres. |
-
-Les entités se choisissent dans une fenêtre de recherche (nom, pièce ou identifiant, filtres par type). Une fois l'entité choisie, une liste propose d'utiliser son **état** ou l'un de ses **attributs** : pour une entité météo, la température, l'humidité, la pression ou le vent ; l'unité suit automatiquement.
-
-Chaque écran peut avoir une icône LaMetric : cliquez sur la case de l'icône et cherchez par nom (en anglais : *sun*, *battery*, *car*…), ou saisissez directement son code (`i1234`, `a1234`).
-
-### Quand
-
-- **Jours** de la semaine.
-- **Plages horaires** : début et fin à une heure fixe, ou au lever / coucher du soleil avec un décalage en minutes. Une plage peut passer minuit (22:30 → 07:00). Sans plage, le programme est actif toute la journée. Raccourcis : *Le jour*, *La nuit*, *Matin*, *Soirée*.
-- **Conditions** sur des entités ou leurs attributs (=, ≠, >, <, ≥, ≤) : toutes doivent être vraies. Raccourcis : *Soleil levé*, *Quelqu'un à la maison*.
-
-L'aperçu en haut de l'éditeur affiche les vraies valeurs, comme sur le LaMetric.
-
----
-
-## Mode nuit
-
-Dans l'onglet **Réglages**, ou avec `switch.holm_lametric_mode_nuit` :
-
-- **plage** de nuit (heure fixe ou soleil) ;
-- **notifications admises** : critiques seulement, ou importantes et critiques ;
-- **silence** la nuit, sauf pour les critiques ;
-- **luminosité la nuit** (facultatif) : appliquée au début de la nuit, l'ancienne valeur revient le matin ;
-- **appliquer aux automatisations** : le filtre vaut aussi pour `lametric_holm.notify` et l'entité `notify` (sauf `ignore_night: true`).
-
----
-
-## Actions
-
-Le paramètre `device` est facultatif si vous n'avez qu'un LaMetric.
-
-### `lametric_holm.notify`
-
-```yaml
-action: lametric_holm.notify
-data:
-  message: "Le portail s'ouvre"
-  icon: i4516
-  priority: critical        # info · warning · critical (réveille l'écran)
-  sound: bicycle            # son LaMetric, ou adresse d'un MP3
-  cycles: 2
-```
-
-Plusieurs écrans, avec jauge et graphique :
-
-```yaml
-action: lametric_holm.notify
-data:
-  frames:
-    - text: "Production {{ states('sensor.ecu_current_power') }} W"
-      icon: a72455
-    - type: goal
-      entity: sensor.batterie
-      end: 100
-      unit: "%"
-    - type: chart
-      entity: sensor.ecu_current_power
-      hours: 12
-```
-
-Autres champs : `icon_type` (none, info, alert), `repeat` (répétitions du son), `lifetime` (secondes), `ignore_night`. L'action renvoie l'identifiant de la notification.
-
-### Les autres actions
-
-| Action | Rôle |
-|---|---|
-| `lametric_holm.dismiss` | Efface la notification affichée, une notification (`id`) ou toutes (`all: true`) |
-| `lametric_holm.push_frames` | Affiche des écrans dans My Data pendant X minutes, à la place des programmes |
-| `lametric_holm.programme` | Active, désactive ou affiche tout de suite un programme (par son nom) |
-| `lametric_holm.activate_app` | Passe sur une appli (`app: Météo`) |
-| `lametric_holm.alarm` | Règle le réveil (`time`, `enabled`, `wake_with_radio`) |
-| `lametric_holm.timer` | Minuteur : `start` avec une `duration`, `pause`, `reset` |
-| `lametric_holm.stopwatch` | Chronomètre : `start`, `pause`, `reset` |
-| `lametric_holm.radio` | Radio : `play`, `stop`, `next`, `prev` |
-| `lametric_holm.clockface` | Cadran de l'horloge : `weather`, `page_a_day`, `none`, ou une icône |
-| `lametric_holm.app_action` | N'importe quelle action d'appli (paquet, action, paramètres) |
-
----
-
-## Venir de l'intégration officielle
-
-1. Ajoutez HOLM LaMetric en reprenant les réglages de l'intégration officielle.
-2. Remplacez dans vos automatisations :
-
-| Avant | Après |
-|---|---|
-| `notify.<lametric>` avec `data: {icon, sound, priority, cycles, icon_type}` | `lametric_holm.notify` avec `message`, `icon`, `sound`, `priority`, `cycles`, `icon_type` au même niveau |
-| `lametric.message` (`device_id`, `message`, `icon`…) | `lametric_holm.notify` (sans `device_id`) |
-| `lametric.chart` | `lametric_holm.notify` avec un écran `chartData` ou `type: chart` |
-
-   Les icônes au format de l'intégration officielle (`4516`) sont acceptées telles quelles.
-3. Supprimez l'intégration officielle. Si Home Assistant la repropose dans « Découvert », cliquez sur « Ignorer ».
-
----
+**Options** : intervalle d'interrogation (30 s par défaut).
+**Reconfigurer** : changer l'adresse IP sans tout refaire.
 
 ## Entités
 
-Les entités s'appellent `<domaine>.holm_lametric_…` :
-
-| Entité | Rôle |
+| Type | Entités |
 |---|---|
-| `number` Luminosité, Volume | Réglages (régler la luminosité passe en mode manuel) |
-| `select` Mode de luminosité, Défilement des applis, Appli affichée | |
-| `switch` Bluetooth, Économiseur d'écran | |
-| `switch` Programmes | Met tous les programmes en pause |
-| `switch` Mode nuit | Attribut `in_night` : la nuit est-elle en cours |
-| `button` Appli suivante / précédente, Effacer la notification, Effacer toutes les notifications | |
-| `sensor` Appli en cours, Notifications en attente, Programmes actifs | Les programmes actifs listent leurs noms en attribut |
-| `sensor` Signal Wi-Fi, Logiciel, Adresse IP | Diagnostic |
-| `notify` Notification | Pour `notify.send_message` |
+| **Capteurs** | État, puissance, énergie de la session, énergie totale, temps de charge, température, courant, tension, courant de l'installation, raison de la limite ; en triphasé : courants et tensions L1 à L3 |
+| **Diagnostic** | État IEC 61851, courant PWM, mémoire libre, temps de fonctionnement, courants système (charge autorisée, maximum, programme, température, puissance utilisateur), signal Wi-Fi, reconnexions Wi-Fi, adresse IP, requêtes envoyées, échecs de communication |
+| **Compteurs** | Nombre de sessions, temps de charge total, énergie de la dernière session |
+| **Défauts** | Erreur EV, limitation thermique, surchauffe, surintensité, erreur de comptage, sous-tension, surtension, différentiel (RCD), test du différentiel, diode EV, relais soudés, erreur de tension, erreur état F |
+| **États** | Véhicule branché, en charge, en pause, dérogation active, erreurs actives, Wi-Fi connecté |
+| **Réglages** | Authentification, verrou, programme de charge, mise à jour automatique, buzzer, redémarrage si Wi-Fi perdu, limite dynamique (0–32 A), limite utilisateur (6–32 A), puissance maximale, luminosité et atténuation de la LED |
+| **Commandes** | Démarrer, arrêter, mettre en pause, reprendre, dérogation du programme, redémarrer |
+
+Quelques entités avancées sont désactivées par défaut (MQTT, gestion d'énergie, couleurs LED, PWM précis, courant minimal du véhicule, courant d'installation, remise à zéro de l'énergie…). Activez-les depuis la page de l'appareil si besoin. Les données qu'un micrologiciel ne fournit pas sont détectées et ne sont plus demandées.
+
+### Tableau de bord Énergie
+
+Dans **Consommation individuelle d'appareils**, ajoutez `sensor.<préfixe>_energie_totale`, le compteur cumulé de la borne en kWh, et `sensor.<préfixe>_puissance` comme puissance instantanée.
+
+## 🎴 La carte HOLM Borne
+
+La carte est fournie avec l'intégration et déclarée automatiquement dans les ressources du tableau de bord. Si une ressource `holm-borne-card.js` existe déjà, l'intégration n'en ajoute pas une seconde.
+
+```yaml
+type: custom:holm-borne-card
+entity: sensor.garage_borne_de_recharge_etat
+name: Borne du garage
+# avec le pilotage intégré, le mode de charge et le bouton Délestage apparaissent d'eux-mêmes
+```
+
+- **Illustration animée** borne → câble → voiture selon l'état, puissance en grand.
+- **Charge** :
+  - mesures (courant, tension, énergie, durée, température, puissance maximale) ;
+  - limite de charge en A et en kW, raison de la limite, limites autorisée, utilisateur, puissance et installation ;
+  - boutons Démarrer, Arrêter, Pause, Reprendre, Dérogation, et Redémarrer avec confirmation.
+- **Pilotage** : modes Heures creuses / Maintenant / Arrêt, état du pilotage et limite appliquée, rappel du courant de charge souhaité (un toucher mène à l'onglet Réglages).
+- **Décompte des heures creuses** : en mode Heures creuses, « Heures creuses dans 4 h 16 (à 23h28) » et le tarif en cours, ou « Heures creuses jusqu'à 05h28 » pendant les heures creuses. Avec [HOLM HP/HC](https://github.com/kaaribou/holm-tarif), c'est automatique ; sans, rien ne change.
+- **Réglages** : le courant de charge souhaité (6 à 32 A, avec raccourcis et équivalent en kW), tous les interrupteurs de la borne et les curseurs limite utilisateur, puissance maximale, courant minimal du véhicule et LED.
+- **Votre photo** à la place de l'illustration (médiathèque ou adresse d'image, cadrage remplir ou image entière) : contour lumineux et barre animée en charge, barre fixe quand le véhicule est branché, contour qui clignote en erreur.
+- **Protégée des gestes involontaires** : les curseurs ne bougent qu'en saisissant la pastille et en la faisant glisser ; un toucher sur la piste ou un défilement de la page ne change rien.
+- **Statistiques** : énergie totale, sessions, temps de charge, dernière session, moyenne par session.
+- **Diagnostic** : contrôles de défauts, signal Wi-Fi, santé de la liaison et courants internes.
+
+Options : `language` (langue de la carte : `fr`, `en`, `de`, `es`, `it`, `nl`, `pt`, `pl` ; par défaut celle du profil), `name`, `delestage_entity`, `hc_entity` (heures creuses pour le décompte, trouvées automatiquement), `image_media` / `image` (photo), `image_fit` (`cover` ou `contain`), `default_tab` (`charge`, `settings`, `stats`, `diag`), `show_settings`, `show_diagnostic`, `car_color` (couleur de la voiture, ex. `#4a5d70`), `phases` (`1` ou `3`, pour l'équivalent en kW), `voltage` (tension nominale, 230 par défaut). L'éditeur visuel est disponible.
+
+La carte fonctionne aussi avec l'intégration Lektrico officielle : les entités sont retrouvées à partir de l'appareil de l'entité « État ».
+
+## 🔌 Pilotage de la charge : heures creuses et délestage
+
+HOLM Lektrico peut **piloter lui-même la borne**, sans aucune automatisation : Paramètres → Appareils et services → HOLM Lektrico → **Configurer** → **Pilotage de la charge**.
+
+<img src="docs/images/options-pilotage.png" alt="Réglages du pilotage" width="420">
+
+| Réglage | Rôle |
+|---|---|
+| **Activer le pilotage** | Crée le mode de charge, l'interrupteur Délestage, le courant de charge et le capteur Pilotage. |
+| **Entité « heures creuses »** | Une entité qui indique les heures creuses : capteur de tarif, `binary_sensor`, `input_boolean`… Recommandé : `binary_sensor.heures_creuses` de [HOLM HP/HC](https://github.com/kaaribou/holm-tarif) (valeur `on`), qui donne aussi à la carte le décompte jusqu'aux prochaines heures creuses. |
+| **Valeur(s) signifiant « heures creuses »** | Par exemple `on`, `HC` ou le prix du kWh en heures creuses (`0.1589`) ; les nombres sont comparés comme des nombres. |
+| **Puissance consommée au compteur** | Facultatif, pour le délestage : Linky/TIC, Ecojoko, Shelly EM… en W. |
+| **Puissance maximale au compteur** | Abonnement moins une marge : 12 kVA → 11 500 W, 9 kVA → 8 500 W, 6 kVA → 5 500 W. |
+| **Courant maximal de la borne** | 32 A par défaut. |
+
+**Entités créées :**
+
+- `select.<préfixe>_mode_de_charge` :
+  - **Heures creuses** : la voiture charge pendant les heures creuses, et reste en pause en dehors ;
+  - **Maintenant** : charge tout de suite, pour un départ imprévu ; le mode repasse en Heures creuses dès que la voiture est débranchée ;
+  - **Arrêt** : pas de charge.
+- `number.<préfixe>_courant_de_charge` : le courant souhaité (6 à 32 A).
+- `switch.<préfixe>_delestage` : pendant une session, la limite suit la puissance mesurée au compteur pour ne jamais dépasser votre abonnement. Elle baisse immédiatement si la maison consomme plus et remonte au plus une fois par minute ; la charge se met en pause sous 6 A et reprend à partir de 7 A ; si le compteur ne répond plus depuis 5 minutes, elle est plafonnée à 16 A.
+- `sensor.<préfixe>_pilotage` : ce que fait le pilotage (« En attente des heures creuses », « Heures creuses · délestage (12 400 W au compteur) »…).
+
+La limite écrite dans la borne est toujours `min(courant de charge selon le mode, plafond de délestage)` : la limite dynamique est gérée par l'intégration, ne la modifiez pas par ailleurs.
+
+> 💡 Désactivez le **programme de charge** propre à la borne (interrupteur « Programme de charge ») : il se battrait avec le mode Heures creuses.
+
+La carte HOLM Borne affiche alors les trois modes, l'état du pilotage et, en mode Heures creuses, le décompte jusqu'aux prochaines heures creuses ; le courant de charge (6 à 32 A, avec raccourcis) se règle dans son onglet Réglages, et son bouton Délestage commande l'interrupteur intégré.
+
+**Vous utilisiez les automatisations de délestage de la version 1.0 ?** Activez le pilotage puis désactivez-les : elles écriraient sur la même limite.
+
+## FAQ
+
+**La borne disparaît encore du réseau.** Vérifiez que l'intégration officielle est bien supprimée, que la page web de la borne n'est pas restée ouverte (elle s'actualise en continu), et augmentez l'intervalle dans les options. Le capteur « Échecs de communication » et le diagnostic téléchargeable aident à suivre la situation.
+
+**La température diffère d'un dixième de l'application.** L'application Lektrico arrondit au degré. Le capteur et la carte affichent aussi des degrés entiers.
+
+**Limite dynamique ou limite utilisateur ?** La limite utilisateur est votre plafond permanent (comme dans l'application). La limite dynamique est celle que règle le pilotage (heures creuses, délestage) ou vos automatisations : 0 = pause. La borne applique la plus basse des deux.
 
 ---
-
-## FAQ / dépannage
-
-**« Appli My Data DIY introuvable » dans la carte.**
-Installez *My Data DIY* sur le LaMetric et réglez-la en `HTTP Push`. Elle est détectée à la lecture suivante (2 minutes au plus).
-
-**Une notification « info » ne s'affiche pas.**
-Quand l'économiseur d'écran est actif, le LaMetric n'affiche que les notifications **critiques**. Le mode nuit de HOLM LaMetric peut aussi les retenir.
-
-**Les icônes de la recherche n'apparaissent pas tout de suite.**
-La première recherche télécharge le catalogue LaMetric (~74 000 icônes), quelques secondes. Il est gardé une semaine dans Home Assistant.
-
-**Les accents ou les emojis s'affichent mal sur le LaMetric.**
-L'écran LaMetric ne connaît pas les emojis ; les accents dépendent du logiciel de l'horloge. L'aperçu de la carte montre les lettres sans accent.
-
----
-
-## Un petit merci ?
-
-HOLM LaMetric vous rend service ? Vous pouvez m'offrir une bière 🍺
-
-[![Offrez-moi une bière](https://img.shields.io/badge/Offrez--moi_une_bi%C3%A8re-PayPal-0070ba?logo=paypal&logoColor=white)](https://paypal.me/kaaribou)
-
----
-
-## Crédits & licence
-
-- API locale et icônes : [LaMetric](https://lametric.com). Projet indépendant, sans lien avec LaMetric.
-- Code : licence **MIT** — © kaaribou.
-
-Voir le [CHANGELOG](CHANGELOG.md).
 
 Fait partie de **HOLM — Home Orchestration & Living Management** : la gestion et l'orchestration intelligente de la maison.
 
-Les autres projets : [Volets HOLM](https://github.com/kaaribou/volets-holm) · [Climat HOLM](https://github.com/kaaribou/climat-holm) · [Carburant HOLM](https://github.com/kaaribou/carburant-holm) · [HOLM My Menu](https://github.com/kaaribou/holm-mymenu) · [HOLM Lektrico](https://github.com/kaaribou/lektrico-holm) · [HOLM HP/HC](https://github.com/kaaribou/holm-tarif) · [HOLM GitHub](https://github.com/kaaribou/github-holm) · [HOLM Cars](https://github.com/kaaribou/holm-cars) · [HOLM Navbar Card](https://github.com/kaaribou/holm-navbar-card) · [HOLM Climate Card](https://github.com/kaaribou/climate-card-holm) · [HOLM Music Card](https://github.com/kaaribou/holm-music-card) · [HOLM Sentinel Card](https://github.com/kaaribou/holm-sentinel-card) · [HOLM Security Card](https://github.com/kaaribou/holm-security-card) · [HOLM Recordings Card](https://github.com/kaaribou/holm-recordings-card) · [HOLM Covers Card](https://github.com/kaaribou/holm-covers-card) · [HOLM Runtime Card](https://github.com/kaaribou/holm-runtime-card) · [HOLM Power Flow Card](https://github.com/kaaribou/holm-power-flow-card) · [HOLM Energy Cards](https://github.com/kaaribou/holm-energy-cards) · [HOLM Radiator Card](https://github.com/kaaribou/holm-radiator-card) · [HOLM Floor Card](https://github.com/kaaribou/holm-floor-card) · [HOLM Ecojoko Card](https://github.com/kaaribou/holm-ecojoko-card) · [HOLM Smoke Card](https://github.com/kaaribou/holm-smoke-card) · [HOLM Family Card](https://github.com/kaaribou/holm-family-card) · [HOLM Live Power Card](https://github.com/kaaribou/holm-live-power-card) · [HOLM Solar Optimizer Card](https://github.com/kaaribou/holm-solar-optimizer-card) · [HOLM Govee Light Card](https://github.com/kaaribou/holm-govee-light-card) · [HOLM Leapmotor Card](https://github.com/kaaribou/holm-leapmotor-card).
+Les autres projets : [Volets HOLM](https://github.com/kaaribou/volets-holm) · [Climat HOLM](https://github.com/kaaribou/climat-holm) · [Carburant HOLM](https://github.com/kaaribou/carburant-holm) · [HOLM LaMetric](https://github.com/kaaribou/lametric-holm) · [HOLM My Menu](https://github.com/kaaribou/holm-mymenu) · [HOLM HP/HC](https://github.com/kaaribou/holm-tarif) · [HOLM GitHub](https://github.com/kaaribou/github-holm) · [HOLM Cars](https://github.com/kaaribou/holm-cars) · [HOLM Navbar Card](https://github.com/kaaribou/holm-navbar-card) · [HOLM Climate Card](https://github.com/kaaribou/climate-card-holm) · [HOLM Music Card](https://github.com/kaaribou/holm-music-card) · [HOLM Sentinel Card](https://github.com/kaaribou/holm-sentinel-card) · [HOLM Security Card](https://github.com/kaaribou/holm-security-card) · [HOLM Recordings Card](https://github.com/kaaribou/holm-recordings-card) · [HOLM Covers Card](https://github.com/kaaribou/holm-covers-card) · [HOLM Runtime Card](https://github.com/kaaribou/holm-runtime-card) · [HOLM Power Flow Card](https://github.com/kaaribou/holm-power-flow-card) · [HOLM Energy Cards](https://github.com/kaaribou/holm-energy-cards) · [HOLM Radiator Card](https://github.com/kaaribou/holm-radiator-card) · [HOLM Floor Card](https://github.com/kaaribou/holm-floor-card) · [HOLM Ecojoko Card](https://github.com/kaaribou/holm-ecojoko-card) · [HOLM Smoke Card](https://github.com/kaaribou/holm-smoke-card) · [HOLM Family Card](https://github.com/kaaribou/holm-family-card) · [HOLM Live Power Card](https://github.com/kaaribou/holm-live-power-card) · [HOLM Solar Optimizer Card](https://github.com/kaaribou/holm-solar-optimizer-card) · [HOLM Govee Light Card](https://github.com/kaaribou/holm-govee-light-card) · [HOLM Leapmotor Card](https://github.com/kaaribou/holm-leapmotor-card).
+
+Licence MIT · Non affilié à Lektrico. · [☕ Offrir une bière](https://paypal.me/kaaribou)
