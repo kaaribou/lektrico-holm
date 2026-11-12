@@ -10,7 +10,7 @@
           "prefix": "Entity prefix"
         },
         "data_description": {
-          "prefix": "Entities will be named e.g. sensor.<prefix>_etat."
+          "prefix": "Entities will be named e.g. sensor.[prefix]_etat."
         }
       },
       "reconfigure": {

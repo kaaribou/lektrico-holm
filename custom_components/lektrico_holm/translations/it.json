@@ -10,7 +10,7 @@
           "prefix": "Prefisso delle entità"
         },
         "data_description": {
-          "prefix": "Le entità si chiameranno ad es. sensor.<prefix>_etat."
+          "prefix": "Le entità si chiameranno ad es. sensor.[prefix]_etat."
         }
       },
       "reconfigure": {

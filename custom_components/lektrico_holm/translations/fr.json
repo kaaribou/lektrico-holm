@@ -10,7 +10,7 @@
           "prefix": "Préfixe des entités"
         },
         "data_description": {
-          "prefix": "Les entités s'appelleront par exemple sensor.<préfixe>_etat. Gardez « garage_borne_de_recharge » pour reprendre les noms de l'intégration officielle."
+          "prefix": "Les entités s'appelleront par exemple sensor.[préfixe]_etat. Gardez « garage_borne_de_recharge » pour reprendre les noms de l'intégration officielle."
         }
       },
       "reconfigure": {

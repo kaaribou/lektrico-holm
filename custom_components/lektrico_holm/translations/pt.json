@@ -10,7 +10,7 @@
           "prefix": "Prefixo das entidades"
         },
         "data_description": {
-          "prefix": "As entidades terão nomes como sensor.<prefix>_etat."
+          "prefix": "As entidades terão nomes como sensor.[prefix]_etat."
         }
       },
       "reconfigure": {

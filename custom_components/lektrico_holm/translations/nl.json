@@ -10,7 +10,7 @@
           "prefix": "Entiteitsvoorvoegsel"
         },
         "data_description": {
-          "prefix": "Entiteiten heten dan bv. sensor.<prefix>_etat."
+          "prefix": "Entiteiten heten dan bv. sensor.[prefix]_etat."
         }
       },
       "reconfigure": {

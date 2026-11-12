@@ -1,7 +1,7 @@
 # Changelog
 
 ## 1.3.1
-- Préparation de l'entrée dans le catalogue de la Marketplace : clés du `manifest.json` remises dans l'ordre attendu par Hassfest et validation automatique (Hassfest et HACS).
+- Préparation de l'entrée dans le catalogue de la Marketplace : clés du `manifest.json` remises dans l'ordre attendu par Hassfest et validation automatique (Hassfest et HACS) ; texte d'aide du préfixe corrigé pour passer la validation des traductions.
 - Aucun changement de fonctionnement.
 
 ## 1.3.0

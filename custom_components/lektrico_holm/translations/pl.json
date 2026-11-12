@@ -10,7 +10,7 @@
           "prefix": "Prefiks encji"
         },
         "data_description": {
-          "prefix": "Encje będą nazwane np. sensor.<prefix>_etat."
+          "prefix": "Encje będą nazwane np. sensor.[prefix]_etat."
         }
       },
       "reconfigure": {

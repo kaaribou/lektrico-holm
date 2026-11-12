@@ -10,7 +10,7 @@
           "prefix": "Prefijo de las entidades"
         },
         "data_description": {
-          "prefix": "Las entidades se llamarán p. ej. sensor.<prefix>_etat."
+          "prefix": "Las entidades se llamarán p. ej. sensor.[prefix]_etat."
         }
       },
       "reconfigure": {
