@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.1
+- Préparation de l'entrée dans le catalogue de la Marketplace : clés du `manifest.json` remises dans l'ordre attendu par Hassfest et validation automatique (Hassfest et HACS).
+- Aucun changement de fonctionnement.
+
 ## 1.3.0
 - **8 langues** : traductions allemand, espagnol, italien, néerlandais, portugais et polonais ajoutées (configuration, options, entités, actions), en plus du français et de l'anglais. Carte HOLM Borne traduite elle aussi (éditeur compris), avec une nouvelle option `language` ; elle suit sinon la langue du profil Home Assistant (anglais si la langue n'est pas traduite).
 - README en anglais (`README.en.md`).

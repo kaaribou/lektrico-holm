@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 DOMAIN = "lektrico_holm"
-VERSION = "1.3.0"
+VERSION = "1.3.1"
 STATIC_PATH = "/lektrico_holm"
 CARD_NAME = "holm-borne-card.js"
 CARD_URL = f"{STATIC_PATH}/{CARD_NAME}"

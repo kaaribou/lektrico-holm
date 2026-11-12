@@ -1,21 +1,21 @@
 {
   "domain": "lektrico_holm",
   "name": "HOLM Lektrico",
+  "after_dependencies": [
+    "frontend",
+    "lovelace"
+  ],
   "codeowners": [
     "@kaaribou"
   ],
   "config_flow": true,
+  "dependencies": [
+    "http"
+  ],
   "documentation": "https://github.com/kaaribou/lektrico-holm",
   "integration_type": "device",
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/kaaribou/lektrico-holm/issues",
   "requirements": [],
-  "version": "1.3.0",
-  "dependencies": [
-    "http"
-  ],
-  "after_dependencies": [
-    "frontend",
-    "lovelace"
-  ]
+  "version": "1.3.1"
 }
